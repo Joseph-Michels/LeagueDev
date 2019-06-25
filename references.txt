@@ -1,0 +1,14 @@
+PYTHON FIREBASE LIBRARY
+https://ozgur.github.io/python-firebase/
+https://github.com/ozgur/python-firebase
+https://www.youtube.com/channel/UCmFw6mtW6hhMwH48oh1tODA/videos
+
+FIREBASE
+https://console.firebase.google.com/project/leaguedev-57c5d/database/leaguedev-57c5d/data
+
+GITHUB
+https://github.com/TsImpLeT/LeagueDev
+learngitbranching.js.org
+
+RIOT API
+https://developer.riotgames.com/api-methods/
