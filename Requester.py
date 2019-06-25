@@ -1,7 +1,7 @@
 import requests
 import time
 
-KEY = "RGAPI-7a8e2b7a-a5b3-4a57-be9d-a80433573413"
+KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
 DEBUG = True
 
 def dprint(*args):
