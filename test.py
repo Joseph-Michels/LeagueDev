@@ -1,6 +1,7 @@
 import requests
 from Requester import Requester
 from pathlib import Path
+from firebase import firebase
 
 SUMMONERS = ["Jible", "blackcat1", "SirMcDerpington", "Shinsei", "who dis fool"]
 
@@ -11,13 +12,12 @@ print([o.name for o in p.iterdir()])
 
 requester = Requester()
 
-
 ids = []
 responses = []
 
 for summoner in SUMMONERS:
 	resp = requester.request("summoner/v4/summoners/by-name/" + summoner)
-	if resp.status_code == 200:
+	if resp is not None:
 		responses.append(resp)
 
 print(ids)
