@@ -1,5 +1,6 @@
 import requests
 import time
+from pprint import pprint
 
 KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
 DEBUG = True
@@ -7,6 +8,10 @@ DEBUG = True
 def dprint(*args):
 	if DEBUG:
 		print(*args)
+
+def dpprint(arg):
+	if DEBUG:
+		pprint(arg)
 
 class Requester:
 	def __init__(self):
@@ -26,7 +31,7 @@ class Requester:
 		dprint("app: ", response.headers["X-App-Rate-Limit-Count"], "/", response.headers["X-App-Rate-Limit"])
 		dprint("method: ", response.headers["X-Method-Rate-Limit-Count"], "/", response.headers["X-Method-Rate-Limit"])
 		dprint([key for key in response.headers])
-		dprint(response.json())
+		dpprint(response.json())
 
 		return response
 
