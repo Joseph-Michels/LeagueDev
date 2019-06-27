@@ -1,9 +1,10 @@
+'''
 import requests
 from Requester import Requester
 from pathlib import Path
 from firebase import firebase
 
-SUMMONERS = ["Jible", "blackcat1", "SirMcDerpington", "Shinsei", "who dis fool"]
+SUMMONERS = ["jamerr102030", "tsimplet", "superfranky", "capengyuyan", "frosthook"]
 
 p = Path()
 
@@ -24,3 +25,4 @@ print(ids)
 
 for rq in responses:
 	print(rq.status_code)
+'''
