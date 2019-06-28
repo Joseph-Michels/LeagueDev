@@ -1,3 +1,5 @@
+cd /mnt/c/Users/JosephM/Coding/LeagueDev
+
 PYREBASE
 https://github.com/thisbejim/Pyrebase
 https://www.youtube.com/watch?v=FCw5PFDb99k
