@@ -14,17 +14,21 @@ CONFIG = {
 	'appId': "1:44032877576:web:df52a4cd48875ecd"
 }
 
-def trace(*args):
+def trace(*args, **kargs):
 	if Requester.trace:
-		if len(args) == 1 and '__dict__' in args[0] and '__iter__' in args[0].__dict__:
+		if len(kargs) == 0 and len(args) == 1 and '__dict__' in args[0] and '__iter__' in args[0].__dict__:
 			pprint(args[0]) # pretty print iterables
 		else:
-			print(*args)
+			print(*args, **kargs)
 
 def get_user(firebase:pyrebase.pyrebase.Firebase):
-	auth = firebase.auth()
 	print("SIGN IN TO FIREBASE")
-	return auth.sign_in_with_email_and_password(input("enter your email: "), input("enter your password: "))
+	email = input("enter your email: ")
+	passw = input("enter your password: ")
+	if email == '' and passw == '':
+		return firebase.auth().sign_in_with_email_and_password('bobelement4181@gmail.com', 'testtest')
+	else:
+		return firebase.auth().sign_in_with_email_and_password(email, passw)
 
 class Requester:
 	instance = None
@@ -33,7 +37,6 @@ class Requester:
 	def __init__(self):
 		self.firebase = pyrebase.initialize_app(CONFIG)
 		self.user = get_user(self.firebase)
-		print('')
 
 	def request(self, url:str) -> requests.Response:
 		msg = f'Attempting to Request "{url}"'
@@ -69,27 +72,29 @@ class Requester:
 
 		app_limits = response.headers['X-App-Rate-Limit'].split(',')
 		app_counts = response.headers['X-App-Rate-Limit-Count'].split(',')
-		app_rate_limits = []
+		app_rate_limits = {}
 		for i in range(len(app_limits)): # relies on correlated limit and count strings
 			limit_ratio, count_ratio = app_limits[i], app_counts[i]
 			limit_colon = limit_ratio.index(':')
 			max_rate = int(limit_ratio[:limit_colon])
 			duration = int(limit_ratio[limit_colon+1:])
 			count = int(count_ratio[:count_ratio.index(':')])
-			app_rate_limits.append((count, max_rate, duration))
-		trace(f"    app: ({' | '.join(f'{count}/{max} in {duration}s' for count, max, duration in app_rate_limits)})")
+			app_rate_limits[duration] = {'count':count, 'max':max_rate}
+		trace("    app: (", " | ".join(f"{d['count']}/{d['max']} in {duration}s" for duration,d in app_rate_limits.items()), ")")
 
 		method_limits = response.headers['X-Method-Rate-Limit'].split(',')
 		method_counts = response.headers['X-Method-Rate-Limit-Count'].split(',')
-		method_rate_limits = []
+		method_rate_limits = {}
 		for i in range(len(method_limits)): # relies on correlated limit and count strings
 			limit_ratio, count_ratio = method_limits[i], method_counts[i]
 			limit_colon = limit_ratio.index(':')
 			max_rate = int(limit_ratio[:limit_colon])
 			duration = int(limit_ratio[limit_colon+1:])
 			count = int(count_ratio[:count_ratio.index(':')])
-			method_rate_limits.append((count, max_rate, duration))
-		trace(f"    method: ({' | '.join(f'{count}/{max} in {duration}s' for count, max, duration in method_rate_limits)})")
+			method_rate_limits[duration] = {'count':count, 'max':max_rate}
+		trace(f'    method "{url}": (', " | ".join(f"{d['count']}/{d['max']} in {duration}s" for duration,d in method_rate_limits.items()), ")")
+
+		app_result = self.firebase.database().child("rate_limits/app").set(app_rate_limits, self.user['idToken'])
 
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
