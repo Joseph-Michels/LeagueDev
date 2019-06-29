@@ -58,3 +58,11 @@ print(multi_result)
 tests = database.child("tests").get(user['idToken'])
 print(tests.val()) # key
 print(tests.key()) # val
+
+# To listen to live changes to data with the stream() method
+def stream_handler(message):
+    print(message["event"]) #put
+    print(message["path"])
+    print(message["data"]) # {'name': 'Mortimer 'Morty' Smith', etc}
+
+my_stream = database.child("posts").stream(stream_handler)
