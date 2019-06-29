@@ -2,3 +2,5 @@
 *.pyo
 lib
 downloads
+.json
+.sqlite

@@ -15,13 +15,21 @@ CONFIG = {
 }
 
 def trace(*args, **kargs):
+	"""
+	Takes an object or objects and prints it or them if the Requester is tracing.
+	Calls pprint on iterables and print on other objects.
+	"""
 	if Requester.trace:
 		if len(kargs) == 0 and len(args) == 1 and '__dict__' in args[0] and '__iter__' in args[0].__dict__:
 			pprint(args[0]) # pretty print iterables
 		else:
 			print(*args, **kargs)
 
-def get_user(firebase:pyrebase.pyrebase.Firebase):
+def get_user(firebase:pyrebase.pyrebase.Firebase):# -> dict
+	"""
+	Returns a dict representing a firebase user (containing the idToken).
+	Currently uses a default test account for two empty strings as inputs.
+	"""
 	print("SIGN IN TO FIREBASE")
 	email = input("enter your email: ")
 	passw = input("enter your password: ")
@@ -31,14 +39,24 @@ def get_user(firebase:pyrebase.pyrebase.Firebase):
 		return firebase.auth().sign_in_with_email_and_password(email, passw)
 
 class Requester:
+	"""
+	A class that handles requests of information about League of Legends from the Riot Games API.
+	Uses firebase to respect the rate limits, and in the future to store data.
+	"""
 	instance = None
 	trace = False
 
 	def __init__(self):
+		"""
+		Creates a Requester object with firebase initialized. Also prompts the user for login to firebase.
+		"""
 		self.firebase = pyrebase.initialize_app(CONFIG)
 		self.user = get_user(self.firebase)
 
-	def request(self, url:str) -> requests.Response:
+	def request(self, url:str):# -> requests.Response:
+		"""
+		Requests information from the Riot Games API. Checks and updates rate limits.
+		"""
 		msg = f'Attempting to Request "{url}"'
 		trace('-'*len(msg))
 		trace(msg)
@@ -52,10 +70,10 @@ class Requester:
 			print(f"Cannot request {url}")
 			return None
 
-	def _can_request(self, url:str) -> bool:
+	def _can_request(self, url:str):# -> bool:
 		return True
 
-	def _get_response(self, url:str) -> requests.Response:
+	def _get_response(self, url:str):# -> requests.Response:
 		response = requests.get("https://na1.api.riotgames.com/lol/" + url + "?api_key="+KEY)
 
 		if response.status_code != 200:
@@ -70,9 +88,12 @@ class Requester:
 		trace(f"    date: {response.headers['Date']}")
 		trace(f"    headers: {[key for key in response.headers]}")
 
+		# gets rate limits and their counts in arrays of "n:duration" where n is max_calls for limits and count for counts
 		app_limits = response.headers['X-App-Rate-Limit'].split(',')
 		app_counts = response.headers['X-App-Rate-Limit-Count'].split(',')
 		app_rate_limits = {}
+
+		# parses this array of strings
 		for i in range(len(app_limits)): # relies on correlated limit and count strings
 			limit_ratio, count_ratio = app_limits[i], app_counts[i]
 			limit_colon = limit_ratio.index(':')
@@ -100,7 +121,7 @@ class Requester:
 		Requester.trace = new_trace
 
 
-def get(trace:bool = False):
+def get(trace:bool = False):# -> Requester
 	if Requester.instance == None:
 		print("CREATED NEW SINGLETON REQUESTER INSTANCE\n")
 		Requester.instance = Requester()

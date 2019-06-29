@@ -18,6 +18,7 @@ auth = firebase.auth()
 email = input("enter your email: ")
 password = input("enter your password: ")
 user = auth.sign_in_with_email_and_password(email, password)
+print(type(user))
 
 database = firebase.database()
 
