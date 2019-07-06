@@ -1,6 +1,10 @@
 import requests
 import pyrebase
-import time
+from time import time as get_long_time
+get_time = lambda : get_long_time() - 1500000000
+
+
+
 from pprint import pprint
 
 KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
@@ -17,7 +21,7 @@ CONFIG = {
 def trace(*args, **kargs):
 	"""
 	Takes an object or objects and prints it or them if the Requester is tracing.
-	Calls pprint on iterables and print on other objects.
+	Calls pprint on iterables (for pretty print) and print on other objects.
 	"""
 	if Requester.trace:
 		if len(kargs) == 0 and len(args) == 1 and '__dict__' in args[0] and '__iter__' in args[0].__dict__:
@@ -43,6 +47,7 @@ class Requester:
 	A class that handles requests of information about League of Legends from the Riot Games API.
 	Uses firebase to respect the rate limits, and in the future to store data.
 	"""
+
 	instance = None
 	trace = False
 
@@ -53,24 +58,25 @@ class Requester:
 		self.firebase = pyrebase.initialize_app(CONFIG)
 		self.user = get_user(self.firebase)
 
-	def request(self, url:str):# -> requests.Response:
+	def request(self, req_type:str):# -> requests.Response:
 		"""
 		Requests information from the Riot Games API. Checks and updates rate limits.
 		"""
-		msg = f'Attempting to Request "{url}"'
+		msg = f'Attempting to Request "{req_type}"'
 		trace('-'*len(msg))
 		trace(msg)
 
-		if self._can_request(url):
+		if self._can_request(req_type):
+			url = _get_url(req_type)
 			response = self._get_response(url)
-			self._update_rate_limit(response, url)
+			self._update_rate_limit(response.headers, req_type)
 
 			return response
 		else:
-			print(f"Cannot request {url}")
+			print(f'Cannot request "{req_type}" due to rate limits.')
 			return None
 
-	def _can_request(self, url:str):# -> bool:
+	def _can_request(self, req_type:str):# -> bool:
 		return True
 
 	def _get_response(self, url:str):# -> requests.Response:
@@ -83,42 +89,79 @@ class Requester:
 			trace(response.json())
 			return response
 
-	def _update_rate_limit(self, response:requests.Response, url:str):
+	def _update_rate_limit(self, resp_headers:dict, req_type:str):
 		trace("  Updating Rate Limit")
-		trace(f"    date: {response.headers['Date']}")
-		trace(f"    headers: {[key for key in response.headers]}")
 
-		# gets rate limits and their counts in arrays of "n:duration" where n is max_calls for limits and count for counts
-		app_limits = response.headers['X-App-Rate-Limit'].split(',')
-		app_counts = response.headers['X-App-Rate-Limit-Count'].split(',')
-		app_rate_limits = {}
+		time = get_time()
+
+		trace(f"    time: {time}")
+		trace(f"    headers: {[key for key in resp_headers]}")
+
+		# gets rate limits in array of "max_calls:duration"
+		app_limits_arr = resp_headers['X-App-Rate-Limit'].split(',')
+		app_limits_dict = {}
+		method_limits_arr = resp_headers['X-Method-Rate-Limit'].split(',')
+		method_limits_dict = {}
 
 		# parses this array of strings
-		for i in range(len(app_limits)): # relies on correlated limit and count strings
-			limit_ratio, count_ratio = app_limits[i], app_counts[i]
-			limit_colon = limit_ratio.index(':')
-			max_rate = int(limit_ratio[:limit_colon])
-			duration = int(limit_ratio[limit_colon+1:])
-			count = int(count_ratio[:count_ratio.index(':')])
-			app_rate_limits[duration] = {'count':count, 'max':max_rate}
-		trace("    app: (", " | ".join(f"{d['count']}/{d['max']} in {duration}s" for duration,d in app_rate_limits.items()), ")")
+		for i in range(len(app_limits_arr)):
+			ratio_str = app_limits_arr[i]
+			colon_idx = ratio_str.index(':')
 
-		method_limits = response.headers['X-Method-Rate-Limit'].split(',')
-		method_counts = response.headers['X-Method-Rate-Limit-Count'].split(',')
-		method_rate_limits = {}
-		for i in range(len(method_limits)): # relies on correlated limit and count strings
-			limit_ratio, count_ratio = method_limits[i], method_counts[i]
-			limit_colon = limit_ratio.index(':')
-			max_rate = int(limit_ratio[:limit_colon])
-			duration = int(limit_ratio[limit_colon+1:])
-			count = int(count_ratio[:count_ratio.index(':')])
-			method_rate_limits[duration] = {'count':count, 'max':max_rate}
-		trace(f'    method "{url}": (', " | ".join(f"{d['count']}/{d['max']} in {duration}s" for duration,d in method_rate_limits.items()), ")")
+			max_calls = int(ratio_str[:colon_idx])
+			duration = int(ratio_str[colon_idx+1:])
 
-		app_result = self.firebase.database().child("rate_limits/app").set(app_rate_limits, self.user['idToken'])
+			d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
+			app_limits_dict[duration] = d
+			result = self.firebase.database().child(f"rate_limits/app/{duration}").update(d, self.user['idToken'])
+		for i in range(len(method_limits_arr)):
+			ratio_str = method_limits_arr[i]
+			colon_idx = ratio_str.index(':')
+
+			max_calls = int(ratio_str[:colon_idx])
+			duration = int(ratio_str[colon_idx+1:])
+
+			d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
+			method_limits_dict[duration] = d
+			result = self.firebase.database().child(f"rate_limits/method/{req_type}/{duration}").update(d, self.user['idToken'])
+
+		# debug
+		trace("    app: (", " | ".join(f"{d['limit']} in {duration}s" for duration, d in app_limits_dict.items()), ")")
+		trace(f'    method "{req_type}": (', " | ".join(f"{d['limit']} in {duration}s" for duration, d in method_limits_dict.items()), ")")
 
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
+
+class UrlBuilder:
+	def __init__(self, url:str):
+		self.url = url
+		self.prompts = set()
+		last_idx = 0
+		for i in range(url.count("{")):
+			open_idx, close_idx = url.find("{", last_idx), url.find("}", last_idx)
+			self.prompts.add(url[open_idx+1:close_idx])
+			last_idx = open_idx
+
+	def __call__(self):
+		print(f'Constructing URL "{self.url}"')
+		params = {}
+		for prompt in self.prompts:
+			params[prompt] = input(f'    Enter "{prompt}": ')
+		s = self.url.format(**params)
+		return s
+
+REQ_DICT = {
+	"summoner_info": UrlBuilder("summoner/v4/summoners/by-name/{summoner_name}")
+}
+
+def _get_url(req_type:str):
+	assert req_type in REQ_DICT
+
+	url = REQ_DICT[req_type]()
+	params = {}
+
+	trace(url)
+	return url
 
 
 def get(trace:bool = False):# -> Requester

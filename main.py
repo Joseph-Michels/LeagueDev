@@ -2,5 +2,5 @@ import riot_requester
 
 requester = riot_requester.get(trace=True)
 
-resp = requester.request("summoner/v4/summoners/by-name/tsimplet")
+resp = requester.request("summoner_info")
 print(resp)
