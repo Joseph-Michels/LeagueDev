@@ -75,7 +75,7 @@ class Requester:
 			url = _get_url(req_type)
 			response = self._get_handle_response(url)
 			if response is not None:
-				self._add_timestamp(response.headers, req_type)
+				self._add_timestamps(response.headers, req_type)
 
 			return response
 		else:
@@ -150,8 +150,8 @@ class Requester:
 			raise Error(f"Request failed with code {response.status_code}")
 
 
-	def _add_timestamp(self, resp_headers:dict, req_type:str):
-		trace("  Adding Rate Limit For Response")
+	def _add_timestamps(self, resp_headers:dict, req_type:str):
+		trace("  Adding Timestamps For Response")
 
 		time = get_time()
 
@@ -192,7 +192,8 @@ class Requester:
 	def get_timestamps(self, timestamp_type:str = None):
 		assert timestamp_type in (None, 'Method', 'method', 'App', 'app')
 		return self.firebase.database().child(f"timestamps{'' if timestamp_type==None else f'/{timestamp_type.lower()}'}")
-
+	
+	
 
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
