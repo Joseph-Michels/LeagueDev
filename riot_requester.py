@@ -70,12 +70,12 @@ class Requester:
 		trace('-'*len(msg))
 		trace(msg)
 
-		self._remove_old_rate_limits(req_type)
+		self._remove_old_timestamps(req_type)
 		if self._can_request(req_type):
 			url = _get_url(req_type)
 			response = self._get_handle_response(url)
 			if response is not None:
-				self._add_rate_limit(response.headers, req_type)
+				self._add_timestamp(response.headers, req_type)
 
 			return response
 		else:
@@ -83,34 +83,36 @@ class Requester:
 			return None
 
 
-	def _remove_old_rate_limits(self, req_type:str):
+	def _remove_old_timestamps(self, req_type:str):
 		time = get_time()
 
-		app_data = self.get_rate_limits('app').get(self.user['idToken']).val()
-		for duration, limit_timestamp_dict in app_data.items():
-			if 'timestamps' in limit_timestamp_dict:
-				for key, timestamp in limit_timestamp_dict['timestamps'].items():
-					if time > timestamp + int(duration):
-						self.get_rate_limits('app').child(f"{duration}/timestamps/{key}").remove(self.user['idToken'])
+		app_data = self.get_timestamps('app').get(self.user['idToken']).val()
+		if type(app_data) is dict:
+			for duration, limit_timestamp_dict in app_data.items():
+				if 'timestamps' in limit_timestamp_dict:
+					for key, timestamp in limit_timestamp_dict['timestamps'].items():
+						if time > timestamp + int(duration):
+							self.get_timestamps('app').child(f"{duration}/timestamps/{key}").remove(self.user['idToken'])
 
-		method_data = self.get_rate_limits('method').child(req_type).get(self.user['idToken']).val()
-		for duration, limit_timestamp_dict in method_data.items():
-			if 'timestamps' in limit_timestamp_dict:
-				for key, timestamp in limit_timestamp_dict['timestamps'].items():
-					if time > timestamp + int(duration):
-						self.get_rate_limits('method').child(f"{req_type}/{duration}/timestamps/{key}").remove(self.user['idToken'])
+		method_data = self.get_timestamps('method').child(req_type).get(self.user['idToken']).val()
+		if type(method_data) is dict:
+			for duration, limit_timestamp_dict in method_data.items():
+				if 'timestamps' in limit_timestamp_dict:
+					for key, timestamp in limit_timestamp_dict['timestamps'].items():
+						if time > timestamp + int(duration):
+							self.get_timestamps('method').child(f"{req_type}/{duration}/timestamps/{key}").remove(self.user['idToken'])
 
 
 	def _can_request(self, req_type:str):# -> bool:
-		app_data = self.get_rate_limits('app').get(self.user['idToken']).val()
-		if app_data is not None:
+		app_data = self.get_timestamps('app').get(self.user['idToken']).val()
+		if type(app_data) is dict:
 			for duration, limit_timestamp_dict in app_data.items():
 				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
 					trace(f"App: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
 					return False
 
-		method_data = self.get_rate_limits('method').child(req_type).get(self.user['idToken']).val()
-		if method_data is not None:
+		method_data = self.get_timestamps('method').child(req_type).get(self.user['idToken']).val()
+		if type(method_data) is dict:
 			for duration, limit_timestamp_dict in method_data.items():
 				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
 					trace(f"Method: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
@@ -126,15 +128,29 @@ class Requester:
 			trace(response.json())
 			return response
 		elif response.status_code == 429:
-			trace(f"EXCEEDED RATE LIMIT: {response.headers['X-Rate-Limit-Type']}, retry after {response.headers['Retry-After']}s")
-
+			time = get_time()
+			if 'X-Rate-Limit-Type' in response.headers:
+				rate_limit_type = response.headers['X-Rate-Limit-Type']
+				retry_after = response.headers['Retry-After']
+				trace(f"EXCEEDED RATE LIMIT: {rate_limit_type}, retry after {retry_after}s")
+				if rate_limit_type == 'application':
+					pass
+				elif rate_limit_type == 'method':
+					pass
+				elif rate_limit_type == 'service':
+					pass
+				else:
+					raise Error(f"Unexpected rate_limit_type {rate_limit_type}")
+			else:
+				trace(f"EXCEEDED RATE LIMIT: back off exponentially until we receive a 200 response")
+				pass
 
 			return None
 		else:
 			raise Error(f"Request failed with code {response.status_code}")
 
 
-	def _add_rate_limit(self, resp_headers:dict, req_type:str):
+	def _add_timestamp(self, resp_headers:dict, req_type:str):
 		trace("  Adding Rate Limit For Response")
 
 		time = get_time()
@@ -157,7 +173,7 @@ class Requester:
 
 			d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
 			app_limits_dict[duration] = d
-			result = self.get_rate_limits('app').child(duration).update(d, self.user['idToken'])
+			result = self.get_timestamps('app').child(duration).update(d, self.user['idToken'])
 		for ratio_str in method_limits_arr:
 			colon_idx = ratio_str.index(':')
 
@@ -166,16 +182,16 @@ class Requester:
 
 			d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
 			method_limits_dict[duration] = d
-			result = self.get_rate_limits('method').child(f"{req_type}/{duration}").update(d, self.user['idToken'])
+			result = self.get_timestamps('method').child(f"{req_type}/{duration}").update(d, self.user['idToken'])
 
 		# debug
 		trace("    app: (", " | ".join(f"{d['limit']} in {duration}s" for duration, d in app_limits_dict.items()), ")")
 		trace(f'    method "{req_type}": (', " | ".join(f"{d['limit']} in {duration}s" for duration, d in method_limits_dict.items()), ")")
 
 
-	def get_rate_limits(self, rate_limit_type:str = None):
-		assert rate_limit_type in (None, 'Method', 'method', 'App', 'app')
-		return self.firebase.database().child(f"rate_limits{'' if rate_limit_type==None else f'/{rate_limit_type.lower()}'}")
+	def get_timestamps(self, timestamp_type:str = None):
+		assert timestamp_type in (None, 'Method', 'method', 'App', 'app')
+		return self.firebase.database().child(f"timestamps{'' if timestamp_type==None else f'/{timestamp_type.lower()}'}")
 
 
 	def update_trace(self, new_trace):
@@ -207,8 +223,8 @@ REQ_DICT = {
 def _get_url(req_type:str):
 	assert req_type in REQ_DICT
 
-	url = REQ_DICT[req_type].prompt()
-#	url = REQ_DICT[req_type].url.format(summoner_name='TsimpleT')
+#	url = REQ_DICT[req_type].prompt()
+	url = REQ_DICT[req_type].url.format(summoner_name='TsimpleT')
 	params = {}
 
 	trace(url)
