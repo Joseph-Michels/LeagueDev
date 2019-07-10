@@ -3,8 +3,6 @@ import pyrebase
 from time import time as get_long_time
 get_time = lambda : get_long_time() - 1500000000
 
-
-
 from pprint import pprint
 
 KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
@@ -24,10 +22,14 @@ def trace(*args, **kargs):
 	Calls pprint on iterables (for pretty print) and print on other objects.
 	"""
 	if Requester.trace:
-		if len(kargs) == 0 and len(args) == 1 and '__dict__' in args[0] and '__iter__' in args[0].__dict__:
-			pprint(args[0]) # pretty print iterables
-		else:
-			print(*args, **kargs)
+		if len(kargs) == 0 and len(args) == 1 and type(args[0]) is not str:
+			try:
+				iterable = iter(args[0])
+				pprint(args[0]) # pretty print iterables
+				return
+			except:
+				pass
+		print(*args, **kargs)
 
 def get_user(firebase:pyrebase.pyrebase.Firebase):# -> dict
 	"""
@@ -51,12 +53,14 @@ class Requester:
 	instance = None
 	trace = False
 
+
 	def __init__(self):
 		"""
 		Creates a Requester object with firebase initialized. Also prompts the user for login to firebase.
 		"""
 		self.firebase = pyrebase.initialize_app(CONFIG)
 		self.user = get_user(self.firebase)
+
 
 	def request(self, req_type:str):# -> requests.Response:
 		"""
@@ -66,31 +70,72 @@ class Requester:
 		trace('-'*len(msg))
 		trace(msg)
 
+		self._remove_old_rate_limits(req_type)
 		if self._can_request(req_type):
 			url = _get_url(req_type)
-			response = self._get_response(url)
-			self._update_rate_limit(response.headers, req_type)
+			response = self._get_handle_response(url)
+			if response is not None:
+				self._add_rate_limit(response.headers, req_type)
 
 			return response
 		else:
 			print(f'Cannot request "{req_type}" due to rate limits.')
 			return None
 
+
+	def _remove_old_rate_limits(self, req_type:str):
+		time = get_time()
+
+		app_data = self.get_rate_limits('app').get(self.user['idToken']).val()
+		for duration, limit_timestamp_dict in app_data.items():
+			if 'timestamps' in limit_timestamp_dict:
+				for key, timestamp in limit_timestamp_dict['timestamps'].items():
+					if time > timestamp + int(duration):
+						self.get_rate_limits('app').child(f"{duration}/timestamps/{key}").remove(self.user['idToken'])
+
+		method_data = self.get_rate_limits('method').child(req_type).get(self.user['idToken']).val()
+		for duration, limit_timestamp_dict in method_data.items():
+			if 'timestamps' in limit_timestamp_dict:
+				for key, timestamp in limit_timestamp_dict['timestamps'].items():
+					if time > timestamp + int(duration):
+						self.get_rate_limits('method').child(f"{req_type}/{duration}/timestamps/{key}").remove(self.user['idToken'])
+
+
 	def _can_request(self, req_type:str):# -> bool:
+		app_data = self.get_rate_limits('app').get(self.user['idToken']).val()
+		if app_data is not None:
+			for duration, limit_timestamp_dict in app_data.items():
+				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
+					trace(f"App: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
+					return False
+
+		method_data = self.get_rate_limits('method').child(req_type).get(self.user['idToken']).val()
+		if method_data is not None:
+			for duration, limit_timestamp_dict in method_data.items():
+				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
+					trace(f"Method: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
+					return False
+
 		return True
 
-	def _get_response(self, url:str):# -> requests.Response:
+
+	def _get_handle_response(self, url:str):# -> requests.Response:
 		response = requests.get("https://na1.api.riotgames.com/lol/" + url + "?api_key="+KEY)
 
-		if response.status_code != 200:
-			raise Error(f"***Request failed with code {response.status_code}***")
-			return None
-		else:
+		if response.status_code == 200:
 			trace(response.json())
 			return response
+		elif response.status_code == 429:
+			trace(f"EXCEEDED RATE LIMIT: {response.headers['X-Rate-Limit-Type']}, retry after {response.headers['Retry-After']}s")
 
-	def _update_rate_limit(self, resp_headers:dict, req_type:str):
-		trace("  Updating Rate Limit")
+
+			return None
+		else:
+			raise Error(f"Request failed with code {response.status_code}")
+
+
+	def _add_rate_limit(self, resp_headers:dict, req_type:str):
+		trace("  Adding Rate Limit For Response")
 
 		time = get_time()
 
@@ -104,8 +149,7 @@ class Requester:
 		method_limits_dict = {}
 
 		# parses this array of strings
-		for i in range(len(app_limits_arr)):
-			ratio_str = app_limits_arr[i]
+		for ratio_str in app_limits_arr:
 			colon_idx = ratio_str.index(':')
 
 			max_calls = int(ratio_str[:colon_idx])
@@ -113,9 +157,8 @@ class Requester:
 
 			d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
 			app_limits_dict[duration] = d
-			result = self.firebase.database().child(f"rate_limits/app/{duration}").update(d, self.user['idToken'])
-		for i in range(len(method_limits_arr)):
-			ratio_str = method_limits_arr[i]
+			result = self.get_rate_limits('app').child(duration).update(d, self.user['idToken'])
+		for ratio_str in method_limits_arr:
 			colon_idx = ratio_str.index(':')
 
 			max_calls = int(ratio_str[:colon_idx])
@@ -123,14 +166,21 @@ class Requester:
 
 			d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
 			method_limits_dict[duration] = d
-			result = self.firebase.database().child(f"rate_limits/method/{req_type}/{duration}").update(d, self.user['idToken'])
+			result = self.get_rate_limits('method').child(f"{req_type}/{duration}").update(d, self.user['idToken'])
 
 		# debug
 		trace("    app: (", " | ".join(f"{d['limit']} in {duration}s" for duration, d in app_limits_dict.items()), ")")
 		trace(f'    method "{req_type}": (', " | ".join(f"{d['limit']} in {duration}s" for duration, d in method_limits_dict.items()), ")")
 
+
+	def get_rate_limits(self, rate_limit_type:str = None):
+		assert rate_limit_type in (None, 'Method', 'method', 'App', 'app')
+		return self.firebase.database().child(f"rate_limits{'' if rate_limit_type==None else f'/{rate_limit_type.lower()}'}")
+
+
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
+
 
 class UrlBuilder:
 	def __init__(self, url:str):
@@ -142,7 +192,7 @@ class UrlBuilder:
 			self.prompts.add(url[open_idx+1:close_idx])
 			last_idx = open_idx
 
-	def __call__(self):
+	def prompt(self, *args):
 		print(f'Constructing URL "{self.url}"')
 		params = {}
 		for prompt in self.prompts:
@@ -157,7 +207,8 @@ REQ_DICT = {
 def _get_url(req_type:str):
 	assert req_type in REQ_DICT
 
-	url = REQ_DICT[req_type]()
+	url = REQ_DICT[req_type].prompt()
+#	url = REQ_DICT[req_type].url.format(summoner_name='TsimpleT')
 	params = {}
 
 	trace(url)
