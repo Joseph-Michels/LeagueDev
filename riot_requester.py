@@ -1,9 +1,13 @@
 import requests
 import pyrebase
-from time import time as get_long_time
-get_time = lambda : get_long_time() - 1500000000
-
+from collections import OrderedDict
+from time import time as _time
+get_time = lambda : _time() - 1500000000
 from pprint import pprint
+
+'''
+TODO TEST SERVICE EXPO SOMEHOW
+'''
 
 KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
 CONFIG = {
@@ -24,7 +28,7 @@ def trace(*args, **kargs):
 	if Requester.trace:
 		if len(kargs) == 0 and len(args) == 1 and type(args[0]) is not str:
 			try:
-				iterable = iter(args[0])
+				iter(args[0])
 				pprint(args[0]) # pretty print iterables
 				return
 			except:
@@ -62,7 +66,7 @@ class Requester:
 		self.user = get_user(self.firebase)
 
 
-	def request(self, req_type:str):# -> requests.Response:
+	def request(self, req_type:str, **req_params_kargs):# -> requests.Response:
 		"""
 		Requests information from the Riot Games API. Checks and updates rate limits.
 		"""
@@ -72,12 +76,10 @@ class Requester:
 
 		self._remove_old_timestamps(req_type)
 		if self._can_request(req_type):
-			url = _get_url(req_type)
-			response = self._get_handle_response(url)
+			response = self._get_handle_response(req_type, **req_params_kargs)
 			if response is not None:
 				self._add_timestamps(response.headers, req_type)
-
-			return response
+				return response.json()
 		else:
 			print(f'Cannot request "{req_type}" due to rate limits.')
 			return None
@@ -87,7 +89,7 @@ class Requester:
 		time = get_time()
 
 		app_data = self.get_timestamps('app').get(self.user['idToken']).val()
-		if type(app_data) is dict:
+		if type(app_data) is OrderedDict:
 			for duration, limit_timestamp_dict in app_data.items():
 				if 'timestamps' in limit_timestamp_dict:
 					for key, timestamp in limit_timestamp_dict['timestamps'].items():
@@ -95,7 +97,7 @@ class Requester:
 							self.get_timestamps('app').child(f"{duration}/timestamps/{key}").remove(self.user['idToken'])
 
 		method_data = self.get_timestamps('method').child(req_type).get(self.user['idToken']).val()
-		if type(method_data) is dict:
+		if type(method_data) is OrderedDict:
 			for duration, limit_timestamp_dict in method_data.items():
 				if 'timestamps' in limit_timestamp_dict:
 					for key, timestamp in limit_timestamp_dict['timestamps'].items():
@@ -104,16 +106,52 @@ class Requester:
 
 
 	def _can_request(self, req_type:str):# -> bool:
-		app_data = self.get_timestamps('app').get(self.user['idToken']).val()
-		if type(app_data) is dict:
-			for duration, limit_timestamp_dict in app_data.items():
+		'''check rate_limits retry_after timestamps'''
+		time = get_time()
+		
+		app_rate_limit_data = self.get_rate_limits('app').get(self.user['idToken']).val()
+		if type(app_rate_limit_data) is OrderedDict:
+			for key, retry_after_timestamp in app_rate_limit_data.items():
+				if time > retry_after_timestamp: # passed retry after mark, remove rate_limit
+					self.get_rate_limits('app').child(key).remove(self.user['idToken'])
+				else:
+					return False
+
+		method_rate_limit_data = self.get_rate_limits('method').child(req_type).get(self.user['idToken']).val()
+		if type(method_rate_limit_data) is OrderedDict:
+			for key, retry_after_timestamp in method_rate_limit_data.items():
+				if time > retry_after_timestamp: # passed retry after mark, remove rate_limit
+					self.get_rate_limits('method').child(f"{req_type}/{key}").remove(self.user['idToken'])
+				else:
+					return False
+
+		service_rate_limit_data = self.get_rate_limits('service').get(self.user['idToken']).val()
+		if type(service_rate_limit_data) is OrderedDict:
+			for key, retry_after_timestamp in service_rate_limit_data.items():
+				if time > retry_after_timestamp: # passed retry after mark, remove rate_limit
+					self.get_rate_limits('service').child(key).remove(self.user['idToken'])
+				else:
+					return False
+
+		# for service_expo, dont remove because the retry_after is handled
+		# exponentially and needs to be referred back to
+		service_expo_rate_limit_data = self.get_rate_limits('service_expo').get(self.user['idToken']).val()
+		if type(service_expo_rate_limit_data) is OrderedDict:
+			for key, retry_timestamp_dict in service_expo_rate_limit_data.items():
+				if time <= retry_timestamp_dict['timestamp'] + retry_timestamp_dict['retry_after']:
+					return False
+					
+		'''check number of previous calls'''
+		app_timestamp_data = self.get_timestamps('app').get(self.user['idToken']).val()
+		if type(app_timestamp_data) is OrderedDict:
+			for duration, limit_timestamp_dict in app_timestamp_data.items():
 				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
 					trace(f"App: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
 					return False
 
-		method_data = self.get_timestamps('method').child(req_type).get(self.user['idToken']).val()
-		if type(method_data) is dict:
-			for duration, limit_timestamp_dict in method_data.items():
+		method_timestamp_data = self.get_timestamps('method').child(req_type).get(self.user['idToken']).val()
+		if type(method_timestamp_data) is OrderedDict:
+			for duration, limit_timestamp_dict in method_timestamp_data.items():
 				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
 					trace(f"Method: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
 					return False
@@ -121,8 +159,9 @@ class Requester:
 		return True
 
 
-	def _get_handle_response(self, url:str):# -> requests.Response:
-		response = requests.get("https://na1.api.riotgames.com/lol/" + url + "?api_key="+KEY)
+	def _get_handle_response(self, req_type:str, **req_params_kargs):# -> requests.Response:
+		url = _get_req_url(req_type, **req_params_kargs)
+		response = requests.get("https://na1.api.riotgames.com/" + url + "?api_key="+KEY)
 
 		if response.status_code == 200:
 			trace(response.json())
@@ -130,24 +169,45 @@ class Requester:
 		elif response.status_code == 429:
 			time = get_time()
 			if 'X-Rate-Limit-Type' in response.headers:
-				rate_limit_type = response.headers['X-Rate-Limit-Type']
 				retry_after = response.headers['Retry-After']
+				retry_after_timestamp = retry_after + time
+				rate_limit_type = response.headers['X-Rate-Limit-Type']
 				trace(f"EXCEEDED RATE LIMIT: {rate_limit_type}, retry after {retry_after}s")
+				
 				if rate_limit_type == 'application':
-					pass
+					self.get_rate_limits('app').push(retry_after_timestamp, self.user['idToken'])
 				elif rate_limit_type == 'method':
-					pass
+					self.get_rate_limits('method').child(req_type).push(retry_after_timestamp, self.user['idToken'])
 				elif rate_limit_type == 'service':
-					pass
+					self.get_rate_limits('service').push(retry_after_timestamp, self.user['idToken'])
 				else:
 					raise Error(f"Unexpected rate_limit_type {rate_limit_type}")
 			else:
+				def get_retry_after_timestamp(d):
+					return d['timestamp'] + d['retry_after']
 				trace(f"EXCEEDED RATE LIMIT: back off exponentially until we receive a 200 response")
-				pass
+				prev_rate_limits = self.get_rate_limits('service_expo').get(self.user['idToken']).val()
+				highest_retry_after = 1
+				if type(prev_rate_limits) is OrderedDict:
+					for key, retry_timestamp_dict in prev_rate_limits.items():
+						# if timestamp passed
+						if time > get_retry_after_timestamp(retry_timestamp_dict):
+							# remove all passed timestamps
+							self.get_rate_limits('service_expo').child(key).remove(self.user['idToken'])
+							this_retry_after = retry_timestamp_dict['retry_after']
+							if this_retry_after > highest_retry_after:
+								highest_retry_after = this_retry_after
+						else:
+							# no need to add a new timestamp if one has not been passed yet
+							return None
+						
+				print(prev_rate_limits)
+				# add timestamp with doubled retry_after
+				self.get_rate_limits('service_expo').push({'timestamp': time, 'retry_after': 2*highest_retry_after}, self.user['idToken'])
 
 			return None
 		else:
-			raise Error(f"Request failed with code {response.status_code}")
+			raise Error(f"Request failed with unexpected response code {response.status_code}")
 
 
 	def _add_timestamps(self, resp_headers:dict, req_type:str):
@@ -190,10 +250,12 @@ class Requester:
 
 
 	def get_timestamps(self, timestamp_type:str = None):
-		assert timestamp_type in (None, 'Method', 'method', 'App', 'app')
-		return self.firebase.database().child(f"timestamps{'' if timestamp_type==None else f'/{timestamp_type.lower()}'}")
+		assert timestamp_type in (None, 'method', 'app')
+		return self.firebase.database().child(f"timestamps{'' if timestamp_type==None else f'/{timestamp_type}'}")
 	
-	
+	def get_rate_limits(self, rate_limit_type:str = None):
+		assert rate_limit_type in (None, 'method', 'app', 'service', 'service_expo')
+		return self.firebase.database().child(f"rate_limits{'' if rate_limit_type==None else f'/{rate_limit_type}'}")
 
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
@@ -209,23 +271,23 @@ class UrlBuilder:
 			self.prompts.add(url[open_idx+1:close_idx])
 			last_idx = open_idx
 
-	def prompt(self, *args):
-		print(f'Constructing URL "{self.url}"')
-		params = {}
+	def prompt(self, **req_params_kargs):
+		trace(f'Constructing URL "{self.url}"')
 		for prompt in self.prompts:
-			params[prompt] = input(f'    Enter "{prompt}": ')
-		s = self.url.format(**params)
+			if prompt not in req_params_kargs:
+				req_params_kargs[prompt] = input(f'    Enter "{prompt}": ')
+		s = self.url.format(**req_params_kargs)
 		return s
 
 REQ_DICT = {
-	"summoner_info": UrlBuilder("summoner/v4/summoners/by-name/{summoner_name}")
+	"summoner_info": UrlBuilder("lol/summoner/v4/summoners/by-name/{summoner_name}"),
+	"league_info": UrlBuilder("lol/league/v4/entries/by-summoner/{encrypted_summoner_id}")
 }
 
-def _get_url(req_type:str):
+def _get_req_url(req_type:str, **req_params_kargs):
 	assert req_type in REQ_DICT
 
-#	url = REQ_DICT[req_type].prompt()
-	url = REQ_DICT[req_type].url.format(summoner_name='TsimpleT')
+	url = REQ_DICT[req_type].prompt(**req_params_kargs)
 	params = {}
 
 	trace(url)
@@ -234,7 +296,7 @@ def _get_url(req_type:str):
 
 def get(trace:bool = False):# -> Requester
 	if Requester.instance == None:
-		print("CREATED NEW SINGLETON REQUESTER INSTANCE\n")
+		trace("CREATED NEW SINGLETON REQUESTER INSTANCE\n")
 		Requester.instance = Requester()
 	Requester.instance.update_trace(trace)
 	return Requester.instance

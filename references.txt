@@ -13,7 +13,7 @@ learngitbranching.js.org
 
 RIOT API
 https://developer.riotgames.com/api-methods/
-https://developer.riotgames.com/rate-limiting.html REMEMBER TO ADD SERVICE
+https://developer.riotgames.com/rate-limiting.html
 
 PREVIOUS PYTHON FIREBASE LIBRARY
 https://ozgur.github.io/python-firebase/
