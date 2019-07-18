@@ -19,6 +19,8 @@ CONFIG = {
 	'messagingSenderId': "44032877576",
 	'appId': "1:44032877576:web:df52a4cd48875ecd"
 }
+PATCH = requests.get("http://ddragon.leagueoflegends.com/api/versions.json").json()[0]
+DDRAGON_URL = f"http://ddragon.leagueoflegends.com/cdn/{PATCH}/"
 
 def trace(*args, **kargs):
 	"""
@@ -35,7 +37,7 @@ def trace(*args, **kargs):
 				pass
 		print(*args, **kargs)
 
-def get_user(firebase:pyrebase.pyrebase.Firebase):# -> dict
+def _login_get_user(firebase:pyrebase.pyrebase.Firebase):# -> dict
 	"""
 	Returns a dict representing a firebase user (containing the idToken).
 	Currently uses a default test account for two empty strings as inputs.
@@ -64,7 +66,7 @@ class Requester:
 		"""
 		self.firebase = pyrebase.initialize_app(CONFIG)
 		self._user_init_time = get_time()
-		self._user = get_user(self.firebase)
+		self._user = _login_get_user(self.firebase)
 
 	def get_user(self):
 		if get_time() > self._user_init_time + float(self._user['expiresIn']):
@@ -78,6 +80,7 @@ class Requester:
 	def request(self, req_type:str, **req_params_kargs):# -> requests.Response:
 		"""
 		Requests information from the Riot Games API. Checks and updates rate limits.
+		Returns None if cannot request.
 		"""
 		msg = f'Attempting to Request "{req_type}"'
 		trace('-'*len(msg))
@@ -91,12 +94,17 @@ class Requester:
 				return response.json()
 		else:
 			print(f'Cannot request "{req_type}" due to rate limits.')
-			return None
+		
+		return None
 
 
 	def _remove_old_timestamps(self, req_type:str):
+		"""
+		Removes old timestamps from firebase.
+		"""
 		time = get_time()
 
+		# Remove old timestamps for calls to the app
 		app_data = self.get_timestamps('app').get(self.get_user_id_token()).val()
 		if type(app_data) is OrderedDict:
 			for duration, limit_timestamp_dict in app_data.items():
@@ -105,6 +113,7 @@ class Requester:
 						if time > timestamp + int(duration):
 							self.get_timestamps('app').child(f"{duration}/timestamps/{key}").remove(self.get_user_id_token())
 
+		# Remove old timestamps for calls to this method
 		method_data = self.get_timestamps('method').child(req_type).get(self.get_user_id_token()).val()
 		if type(method_data) is OrderedDict:
 			for duration, limit_timestamp_dict in method_data.items():
@@ -115,6 +124,11 @@ class Requester:
 
 
 	def _can_request(self, req_type:str):# -> bool:
+		"""
+		Can request only when there are no current retry_after messages, and
+		when the app/method have already been called too many times.
+		"""
+
 		'''check rate_limits retry_after timestamps'''
 		time = get_time()
 		
@@ -169,13 +183,17 @@ class Requester:
 
 
 	def _get_handle_response(self, req_type:str, **req_params_kargs):# -> requests.Response:
+		"""
+		Uses the requests api to make the request. Handles rate limits and adds
+		retry_after messages to firebase.
+		"""
 		url = _get_req_url(req_type, **req_params_kargs)
 		response = requests.get("https://na1.api.riotgames.com/" + url + "?api_key="+KEY)
 
-		if response.status_code == 200:
+		if response.status_code == 200: # return if ok (200)
 			trace(response.json())
 			return response
-		elif response.status_code == 429:
+		elif response.status_code == 429: # got rate limited, add retry_after
 			time = get_time()
 			if 'X-Rate-Limit-Type' in response.headers:
 				retry_after = response.headers['Retry-After']
@@ -220,6 +238,9 @@ class Requester:
 
 
 	def _add_timestamps(self, resp_headers:dict, req_type:str):
+		"""
+		Add timestamps of calls to the app and this method to firebase.
+		"""
 		trace("  Adding Timestamps For Response")
 
 		time = get_time()
@@ -263,10 +284,12 @@ class Requester:
 
 
 	def get_timestamps(self, timestamp_type:str = None):
+		"""Get firebase child for timestamps."""
 		assert timestamp_type in (None, 'method', 'app')
 		return self.firebase.database().child(f"timestamps{'' if timestamp_type==None else f'/{timestamp_type}'}")
 	
 	def get_rate_limits(self, rate_limit_type:str = None):
+		"""Get firebase child for rate_limits."""
 		assert rate_limit_type in (None, 'method', 'app', 'service', 'service_expo')
 		return self.firebase.database().child(f"rate_limits{'' if rate_limit_type==None else f'/{rate_limit_type}'}")
 
@@ -275,6 +298,10 @@ class Requester:
 
 
 class UrlBuilder:
+	"""
+	Stores a url, potentially with one or more {parameter_name}s in it.
+	When prompted, fills the {parameter_name}s out.
+	"""
 	def __init__(self, url:str):
 		self.url = url
 		self.prompts = set()
@@ -303,10 +330,15 @@ def _get_req_url(req_type:str, **req_params_kargs):
 	assert req_type in REQ_DICT
 
 	url = REQ_DICT[req_type].prompt(**req_params_kargs)
-	params = {}
 
 	trace(url)
 	return url
+
+
+DDRAGON_DICT = {
+	"champions": UrlBuilder("data/en_US/champion.json"),
+	"champion": UrlBuilder("data/en_US/champion/{champion}.json")
+}
 
 
 def get(trace:bool = False):# -> Requester

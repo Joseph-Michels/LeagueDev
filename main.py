@@ -3,7 +3,8 @@ from pprint import pprint
 
 requester = riot_requester.get(trace=False)
 
-SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
+#SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
+SUMMONERS = ['TsimpleT']
 
 league_responses = []
 champion_mastery_responses = []
@@ -15,4 +16,4 @@ for summoner in SUMMONERS:
 	champion_mastery_responses.append(requester.request("champion_mastery", **summoner_id_kargs))
 
 pprint(league_responses)
-#pprint(champion_mastery_responses)
+pprint(champion_mastery_responses[:10])

@@ -14,7 +14,7 @@ while True:
 	next_statuses = requester.request("status")
 
 	if statuses != next_statuses:
-		# checking exactly what changed
+		# if status is different, check and display exactly what changed
 
 		# new statuses?
 		for status in next_statuses:
