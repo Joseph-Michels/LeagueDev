@@ -24,7 +24,7 @@ while True:
 
 		# ended statuses?
 		for status in statuses:
-			if status not in statuses:
+			if status not in next_statuses:
 				print(f"\a[{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}] END STATUS")
 				print(status)
 
