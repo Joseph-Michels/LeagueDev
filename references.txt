@@ -1,5 +1,10 @@
 cd /mnt/c/Users/JosephM/Coding/LeagueDev
 
+WEB STUFF AND PYTHON AND HTML
+https://stackoverflow.com/questions/50465122/python-as-backend-and-html-as-front-end
+https://docs.djangoproject.com/en/2.1/intro/tutorial01/
+https://pages.github.com
+
 PYREBASE
 https://github.com/thisbejim/Pyrebase
 https://www.youtube.com/watch?v=FCw5PFDb99k
