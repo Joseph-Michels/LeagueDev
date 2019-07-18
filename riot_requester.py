@@ -6,7 +6,8 @@ get_time = lambda : _time() - 1500000000
 from pprint import pprint
 
 '''
-TODO TEST SERVICE EXPO SOMEHOW
+TODO:
+TEST SERVICE EXPO SOMEHOW
 '''
 
 KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
@@ -19,8 +20,10 @@ CONFIG = {
 	'messagingSenderId': "44032877576",
 	'appId': "1:44032877576:web:df52a4cd48875ecd"
 }
-PATCH = requests.get("http://ddragon.leagueoflegends.com/api/versions.json").json()[0]
-DDRAGON_URL = f"http://ddragon.leagueoflegends.com/cdn/{PATCH}/"
+
+RIOT_URL = "https://na1.api.riotgames.com/"
+PATCH = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()[0]
+DDRAGON_URL = f"https://ddragon.leagueoflegends.com/cdn/{PATCH}/"
 
 def trace(*args, **kargs):
 	"""
@@ -188,7 +191,7 @@ class Requester:
 		retry_after messages to firebase.
 		"""
 		url = _get_req_url(req_type, **req_params_kargs)
-		response = requests.get("https://na1.api.riotgames.com/" + url + "?api_key="+KEY)
+		response = requests.get(f"{RIOT_URL}{url}?api_key={KEY}")
 
 		if response.status_code == 200: # return if ok (200)
 			trace(response.json())
@@ -295,6 +298,9 @@ class Requester:
 
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
+
+	def ddragon_request(self, req_type:str, **req_params_kargs):
+		return requests.get(f"{DDRAGON_URL}{DDRAGON_DICT[req_type].prompt(**req_params_kargs)}").json()
 
 
 class UrlBuilder:
