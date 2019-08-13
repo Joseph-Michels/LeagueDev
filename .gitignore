@@ -3,3 +3,5 @@
 lib
 downloads
 .vs
+/virtual
+/keys

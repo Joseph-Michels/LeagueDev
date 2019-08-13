@@ -10,16 +10,13 @@ TODO:
 TEST SERVICE EXPO SOMEHOW
 '''
 
-KEY = "RGAPI-c40eda3c-45e1-4705-9dac-173ee2c4e14c"
-CONFIG = {
-	'apiKey': "AIzaSyBkiDeRm6ZKergpdVH_zSBceTLNsLCrMLQ",
-	'authDomain': "leaguedev-57c5d.firebaseapp.com",
-	'databaseURL': "https://leaguedev-57c5d.firebaseio.com",
-	'projectId': "leaguedev-57c5d",
-	'storageBucket': "leaguedev-57c5d.appspot.com",
-	'messagingSenderId': "44032877576",
-	'appId': "1:44032877576:web:df52a4cd48875ecd"
-}
+KEY = ""
+CONFIG = ""
+
+with open("keys/riot.txt", 'r') as f:
+	KEY = f.readline().rstrip()
+with open("keys/firebase.txt", 'r') as f:
+	CONFIG = eval(f.read())
 
 RIOT_URL = "https://na1.api.riotgames.com/"
 PATCH = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()[0]

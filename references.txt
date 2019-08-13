@@ -1,9 +1,16 @@
 cd /mnt/c/Users/JosephM/Coding/LeagueDev
 
 WEB STUFF AND PYTHON AND HTML
+weebly wix squarespace??? with flask
+https://www.reddit.com/r/flask/comments/2321oc/easiest_and_fastest_way_to_host_flask_python/
+https://cloud.google.com/appengine/docs/standard/python3/building-app/
+https://www.freecodecamp.org/news/how-to-build-a-web-application-using-flask-and-deploy-it-to-the-cloud-3551c985e492/
+https://www.quora.com/How-do-I-incorporate-Python-into-HTML
 https://stackoverflow.com/questions/50465122/python-as-backend-and-html-as-front-end
 https://docs.djangoproject.com/en/2.1/intro/tutorial01/
 https://pages.github.com
+https://tsimplet.github.io/LeagueDev/
+https://www.youtube.com/watch?v=pQN-pnXPaVg (HTML)
 
 PYREBASE
 https://github.com/thisbejim/Pyrebase
