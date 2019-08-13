@@ -3,11 +3,11 @@ from pprint import pprint
 
 requester = riot_requester.get(trace=False)
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in requester.ddragon_request("champions")["data"].items()}
-def get_champion(id:int):
+def get_champion(id:int) -> str:
 	return CHAMPION_KEYS[id]
 
-SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
-#SUMMONERS = ['TsimpleT']
+#SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
+SUMMONERS = ['coIder']
 
 league_responses = []
 champion_mastery_responses = []
