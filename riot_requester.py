@@ -60,13 +60,16 @@ class Requester:
 	trace = False
 
 
-	def __init__(self):
+	def __init__(self, email:str, password:str):
 		"""
 		Creates a Requester object with firebase initialized. Also prompts the user for login to firebase.
 		"""
 		self.firebase = pyrebase.initialize_app(CONFIG)
 		self._user_init_time = get_time()
-		self._user = _login_get_user(self.firebase)
+		if email is None or password is None:
+		    self._user = _login_get_user(self.firebase)
+		else:
+		    self._user = self.firebase.auth().sign_in_with_email_and_password(email, password)
 
 	def get_user(self) -> dict:
 		if get_time() > self._user_init_time + float(self._user['expiresIn']):
@@ -94,7 +97,7 @@ class Requester:
 				return response.json()
 		else:
 			print(f'Cannot request "{req_type}" due to rate limits.')
-		
+
 		return None
 
 
@@ -131,7 +134,7 @@ class Requester:
 
 		'''check rate_limits retry_after timestamps'''
 		time = get_time()
-		
+
 		app_rate_limit_data = self.get_rate_limits('app').get(self.get_user_id_token()).val()
 		if type(app_rate_limit_data) is OrderedDict:
 			for key, retry_after_timestamp in app_rate_limit_data.items():
@@ -163,7 +166,7 @@ class Requester:
 			for key, retry_timestamp_dict in service_expo_rate_limit_data.items():
 				if time <= retry_timestamp_dict['timestamp'] + retry_timestamp_dict['retry_after']:
 					return False
-					
+
 		'''check number of previous calls'''
 		app_timestamp_data = self.get_timestamps('app').get(self.get_user_id_token()).val()
 		if type(app_timestamp_data) is OrderedDict:
@@ -200,7 +203,7 @@ class Requester:
 				retry_after_timestamp = retry_after + time
 				rate_limit_type = response.headers['X-Rate-Limit-Type']
 				trace(f"EXCEEDED RATE LIMIT: {rate_limit_type}, retry after {retry_after}s")
-				
+
 				if rate_limit_type == 'application':
 					self.get_rate_limits('app').push(retry_after_timestamp, self.get_user_id_token())
 				elif rate_limit_type == 'method':
@@ -227,7 +230,7 @@ class Requester:
 						else:
 							# no need to add a new timestamp if one has not been passed yet
 							return None
-						
+
 				print(prev_rate_limits)
 				# add timestamp with doubled retry_after
 				self.get_rate_limits('service_expo').push({'timestamp': time, 'retry_after': 2*highest_retry_after}, self.get_user_id_token())
@@ -287,7 +290,7 @@ class Requester:
 		"""Get firebase child for timestamps."""
 		assert timestamp_type in (None, 'method', 'app')
 		return self.firebase.database().child(f"timestamps{'' if timestamp_type==None else f'/{timestamp_type}'}")
-	
+
 	def get_rate_limits(self, rate_limit_type:str = None):
 		"""Get firebase child for rate_limits."""
 		assert rate_limit_type in (None, 'method', 'app', 'service', 'service_expo')
@@ -344,9 +347,9 @@ DDRAGON_DICT = {
 }
 
 
-def get(trace:bool = False) -> Requester:
+def get(trace:bool = False, email:str = None, password:str = None) -> Requester:
 	if Requester.instance == None:
 		print("CREATED NEW SINGLETON REQUESTER INSTANCE\n")
-		Requester.instance = Requester()
+		Requester.instance = Requester(email, password)
 	Requester.instance.update_trace(trace)
 	return Requester.instance
