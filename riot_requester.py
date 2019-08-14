@@ -15,10 +15,13 @@ TEST SERVICE EXPO SOMEHOW
 KEY = ""
 CONFIG = ""
 
-with open("keys/riot.txt", 'r') as f:
-	KEY = f.readline().rstrip()
-with open("keys/firebase.txt", 'r') as f:
-	CONFIG = eval(f.read())
+try:
+	with open("keys/riot.txt", 'r') as f:
+		KEY = f.readline().rstrip()
+	with open("keys/firebase.txt", 'r') as f:
+		CONFIG = eval(f.read())
+except FileNotFoundError:
+	raise FileNotFoundError("You need a keys folder with valid credentials stored in riot.txt and firebase.txt")
 
 RIOT_URL = "https://na1.api.riotgames.com/"
 
