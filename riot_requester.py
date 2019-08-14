@@ -37,7 +37,7 @@ def trace(*args, **kargs):
 				pass
 		print(*args, **kargs)
 
-def _login_get_user(firebase:pyrebase.pyrebase.Firebase):# -> dict
+def _login_get_user(firebase:pyrebase.pyrebase.Firebase) -> dict:
 	"""
 	Returns a dict representing a firebase user (containing the idToken).
 	Currently uses a default test account for two empty strings as inputs.
@@ -68,16 +68,16 @@ class Requester:
 		self._user_init_time = get_time()
 		self._user = _login_get_user(self.firebase)
 
-	def get_user(self):
+	def get_user(self) -> dict:
 		if get_time() > self._user_init_time + float(self._user['expiresIn']):
 			self._user_init_time = get_time()
-			self._user = self._firebase.auth().refresh(self._user['refreshToken'])
+			self._user = self.firebase.auth().refresh(self._user['refreshToken'])
 		return self._user
 
-	def get_user_id_token(self):
+	def get_user_id_token(self) -> str:
 		return self.get_user()['idToken']
 
-	def request(self, req_type:str, **req_params_kargs):# -> requests.Response:
+	def request(self, req_type:str, **req_params_kargs) -> requests.Response:
 		"""
 		Requests information from the Riot Games API. Checks and updates rate limits.
 		Returns None if cannot request.
@@ -123,7 +123,7 @@ class Requester:
 							self.get_timestamps('method').child(f"{req_type}/{duration}/timestamps/{key}").remove(self.get_user_id_token())
 
 
-	def _can_request(self, req_type:str):# -> bool:
+	def _can_request(self, req_type:str) -> bool:
 		"""
 		Can request only when there are no current retry_after messages, and
 		when the app/method have already been called too many times.
@@ -182,7 +182,7 @@ class Requester:
 		return True
 
 
-	def _get_handle_response(self, req_type:str, **req_params_kargs):# -> requests.Response:
+	def _get_handle_response(self, req_type:str, **req_params_kargs) -> requests.Response:
 		"""
 		Uses the requests api to make the request. Handles rate limits and adds
 		retry_after messages to firebase.
@@ -208,7 +208,7 @@ class Requester:
 				elif rate_limit_type == 'service':
 					self.get_rate_limits('service').push(retry_after_timestamp, self.get_user_id_token())
 				else:
-					raise Error(f"Unexpected rate_limit_type {rate_limit_type}")
+					raise ValueError(f"Unexpected rate_limit_type {rate_limit_type}")
 			else:
 				def get_retry_after_timestamp(d):
 					return d['timestamp'] + d['retry_after']
@@ -234,7 +234,7 @@ class Requester:
 
 			return None
 		else:
-			raise Error(f"Request failed with unexpected response code {response.status_code}")
+			raise ValueError(f"Request failed with unexpected response code {response.status_code}")
 
 
 	def _add_timestamps(self, resp_headers:dict, req_type:str):
@@ -262,7 +262,7 @@ class Requester:
 
 				d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
 				app_limits_dict[duration] = d
-				result = self.get_timestamps('app').child(duration).update(d, self.get_user_id_token())
+				self.get_timestamps('app').child(duration).update(d, self.get_user_id_token())
 
 			trace("    app: (", " | ".join(f"{d['limit']} in {duration}s" for duration, d in app_limits_dict.items()), ")")
 
@@ -278,7 +278,7 @@ class Requester:
 
 				d = {"limit": max_calls, "timestamps/"+self.firebase.database().generate_key():time}
 				method_limits_dict[duration] = d
-				result = self.get_timestamps('method').child(f"{req_type}/{duration}").update(d, self.get_user_id_token())
+				self.get_timestamps('method').child(f"{req_type}/{duration}").update(d, self.get_user_id_token())
 
 			trace(f'    method "{req_type}": (', " | ".join(f"{d['limit']} in {duration}s" for duration, d in method_limits_dict.items()), ")")
 
@@ -309,7 +309,7 @@ class UrlBuilder:
 		self.url = url
 		self.prompts = set()
 		last_idx = 0
-		for i in range(url.count("{")):
+		for _ in range(url.count("{")):
 			open_idx, close_idx = url.find("{", last_idx), url.find("}", last_idx)
 			self.prompts.add(url[open_idx+1:close_idx])
 			last_idx = open_idx
@@ -344,7 +344,7 @@ DDRAGON_DICT = {
 }
 
 
-def get(trace:bool = False):# -> Requester
+def get(trace:bool = False) -> Requester:
 	if Requester.instance == None:
 		print("CREATED NEW SINGLETON REQUESTER INSTANCE\n")
 		Requester.instance = Requester()
