@@ -10,4 +10,4 @@ DDRAGON_DICT = {
 }
 
 def request(req_type:str, **req_params_kargs):
-	return requests.get(f"{DDRAGON_URL}{DDRAGON_DICT[req_type].prompt(**req_params_kargs)}").json()
+	return requests.get(f"{DDRAGON_URL}{DDRAGON_DICT[req_type].build(**req_params_kargs)}").json()

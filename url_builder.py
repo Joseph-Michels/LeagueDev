@@ -13,7 +13,7 @@ class UrlBuilder:
 			self.prompts.add(url[open_idx+1:close_idx])
 			last_idx = open_idx
 
-	def prompt(self, **req_params_kargs):
+	def build(self, **req_params_kargs):
 		# assertions, handle optionals
 		ending_dict = {}
 		for inp_key in req_params_kargs:

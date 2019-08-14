@@ -12,12 +12,12 @@ TODO:
 TEST SERVICE EXPO SOMEHOW
 '''
 
-KEY = ""
+HEADER = ""
 CONFIG = ""
 
 try:
 	with open("keys/riot.txt", 'r') as f:
-		KEY = f.readline().rstrip()
+		HEADER = {"X-Riot-Token":f.readline().rstrip()}
 	with open("keys/firebase.txt", 'r') as f:
 		CONFIG = eval(f.read())
 except FileNotFoundError:
@@ -195,7 +195,7 @@ class Requester:
 		retry_after messages to firebase.
 		"""
 		url = _get_req_url(req_type, **req_params_kargs)
-		response = requests.get(f"{RIOT_URL}{url}?api_key={KEY}")
+		response = requests.get(f"{RIOT_URL}{url}", headers=HEADER)
 
 		if response.status_code == 200: # return if ok (200)
 			trace(response.json())
@@ -307,13 +307,15 @@ REQ_DICT = {
 	"summoner_info": UrlBuilder("lol/summoner/v4/summoners/by-name/{summoner_name}"),
 	"league_info": UrlBuilder("lol/league/v4/entries/by-summoner/{encrypted_summoner_id}"),
 	"champion_mastery": UrlBuilder("lol/champion-mastery/v4/champion-masteries/by-summoner/{encrypted_summoner_id}"),
-	"status": UrlBuilder("lol/status/v3/shard-data")
+	"status": UrlBuilder("lol/status/v3/shard-data"),
+	"matchlist": UrlBuilder("lol/match/v4/matchlists/by-account/{encrypted_account_id}",
+		set(('champion', 'queue', 'season', 'endTime', 'beginTime', 'endIndex', 'beginIndex')))
 }
 
 def _get_req_url(req_type:str, **req_params_kargs):
-	assert req_type in REQ_DICT
+	assert req_type in REQ_DICT, f'Request Type "{req_type} undefined.'
 
-	url = REQ_DICT[req_type].prompt(**req_params_kargs)
+	url = REQ_DICT[req_type].build(**req_params_kargs)
 
 	trace(url)
 	return url
