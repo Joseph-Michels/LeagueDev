@@ -2,8 +2,10 @@ import requests
 import pyrebase
 from collections import OrderedDict
 from time import time as _time
-get_time = lambda : _time() - 1500000000
+get_time = lambda : _time() - 1500000000  # TODO: safely remove arbitrary constant that could mess timestamps up
 from pprint import pprint
+
+from url_builder import UrlBuilder
 
 '''
 TODO:
@@ -19,8 +21,7 @@ with open("keys/firebase.txt", 'r') as f:
 	CONFIG = eval(f.read())
 
 RIOT_URL = "https://na1.api.riotgames.com/"
-PATCH = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()[0]
-DDRAGON_URL = f"https://ddragon.leagueoflegends.com/cdn/{PATCH}/"
+
 
 def trace(*args, **kargs):
 	"""
@@ -299,32 +300,6 @@ class Requester:
 	def update_trace(self, new_trace):
 		Requester.trace = new_trace
 
-	def ddragon_request(self, req_type:str, **req_params_kargs):
-		return requests.get(f"{DDRAGON_URL}{DDRAGON_DICT[req_type].prompt(**req_params_kargs)}").json()
-
-
-class UrlBuilder:
-	"""
-	Stores a url, potentially with one or more {parameter_name}s in it.
-	When prompted, fills the {parameter_name}s out.
-	"""
-	def __init__(self, url:str):
-		self.url = url
-		self.prompts = set()
-		last_idx = 0
-		for _ in range(url.count("{")):
-			open_idx, close_idx = url.find("{", last_idx), url.find("}", last_idx)
-			self.prompts.add(url[open_idx+1:close_idx])
-			last_idx = open_idx
-
-	def prompt(self, **req_params_kargs):
-		trace(f'Constructing URL "{self.url}"')
-		for prompt in self.prompts:
-			if prompt not in req_params_kargs:
-				req_params_kargs[prompt] = input(f'    Enter "{prompt}": ')
-		s = self.url.format(**req_params_kargs)
-		return s
-
 REQ_DICT = {
 	"summoner_info": UrlBuilder("lol/summoner/v4/summoners/by-name/{summoner_name}"),
 	"league_info": UrlBuilder("lol/league/v4/entries/by-summoner/{encrypted_summoner_id}"),
@@ -339,12 +314,6 @@ def _get_req_url(req_type:str, **req_params_kargs):
 
 	trace(url)
 	return url
-
-
-DDRAGON_DICT = {
-	"champions": UrlBuilder("data/en_US/champion.json"),
-	"champion": UrlBuilder("data/en_US/champion/{champion}.json")
-}
 
 
 def get(trace:bool = False, email:str = None, password:str = None) -> Requester:
