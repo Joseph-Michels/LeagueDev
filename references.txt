@@ -24,6 +24,7 @@ https://github.com/TsImpLeT/LeagueDev
 learngitbranching.js.org
 
 RIOT API
+https://www.epochconverter.com
 https://developer.riotgames.com/api-methods/
 https://developer.riotgames.com/rate-limiting.html
 https://developer.riotgames.com/static-data.html
