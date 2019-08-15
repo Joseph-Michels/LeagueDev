@@ -10,6 +10,34 @@ def get_champion(id:int) -> str:
 def get_ranks(league_info:dict):
 	return (f"{l['queueType']}: {l['tier']} {l['rank']} ({l['wins']}-{l['losses']})" for l in league_info)
 
+def participant_id(summoner:str, match:dict):
+	for participant_id_dict in match['participantIdentities']:
+		if participant_id_dict['player']['summonerName'] == summoner:
+			return participant_id_dict['participantId']
+
+# 100 blue, 200 red
+def side(summoner:str, match:dict):
+	idx = participant_id(summoner, match)
+	for participant_dict in match['participants']:
+		if participant_dict['participantId'] == idx:
+			return participant_dict['teamId']
+
+# past_tense: "Won"/"Lost"
+# not past_tense: "Win"/"Loss"
+def match_result(summoner:str, match:dict, past_tense=False):
+	s = side(summoner, match)
+	for team_dict in match['teams']:
+		if team_dict['teamId'] == s:
+			val = team_dict['win']
+			return ("Lost" if val == "Fail" else "Won") if past_tense else ("Loss" if val == "Fail" else val)
+
+def player_match_score(summoner:str, match:dict):
+	idx = participant_id(summoner, match)
+	for participant_dict in match['participants']:
+		if participant_dict['participantId'] == idx:
+			d = participant_dict['stats']
+			return f"{d['kills']}/{d['deaths']}/{d['assists']}"
+
 
 if __name__ == "__main__":	
 	#SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
@@ -18,6 +46,7 @@ if __name__ == "__main__":
 	league_responses = []
 	champion_mastery_responses = []
 	matchlist_responses = []
+	match_ids = set()
 	for summoner in SUMMONERS:
 		summoner_response = requester.request("summoner_info", summoner_name=summoner)
 
@@ -26,14 +55,23 @@ if __name__ == "__main__":
 		champion_mastery_responses.append(requester.request("champion_mastery", **summoner_id_kargs))
 
 		account_id_kargs = {'encrypted_account_id': summoner_response['accountId']}
-		matchlist_responses.append(requester.request("matchlist", **account_id_kargs, beginIndex=0, endIndex=3))
+		this_matchlist_response = requester.request("matchlist", **account_id_kargs, beginIndex=0, endIndex=15)
+		matchlist_responses.append(this_matchlist_response)
+		for m in this_matchlist_response['matches']:
+			match_ids.add(m['gameId'])
+
+	matches = {}
+	for match_id in match_ids:
+		matches[match_id] = requester.request("match", match_id=match_id)
 
 	for i in range(len(SUMMONERS)):
-		print(f'Information for "{SUMMONERS[i]}":')
-		print("  Ranks:")
-		print('\n'.join(f"    {rank}" for rank in get_ranks(league_responses[i])))
-		print("  Champions")
-		print('\n'.join(f"    {get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
-		print("  Matches")
-		ml = matchlist_responses[i]
-		print('\n'.join(f"    Played {get_champion(m['champion'])} in gameId {m['gameId']} on {datetime.fromtimestamp(int(m['timestamp'])/1000).strftime('%m-%d-%y %I:%M%p')}" for m in ml['matches']))
+		summ = SUMMONERS[i]
+		print(f'Information for "{summ}":')
+		print("    Ranks:")
+		print('\n'.join(f"        {rank}" for rank in get_ranks(league_responses[i])))
+		print("    Champions")
+		print('\n'.join(f"        {get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
+		print("    Recent Matches")
+		print('\n'.join(
+			f"        {match_result(summ, matches[m['gameId']], past_tense=True)} a {get_champion(m['champion'])} game #{m['gameId']} with a score of {player_match_score(summ, matches[m['gameId']])} on {datetime.fromtimestamp(int(m['timestamp'])/1000).strftime('%m-%d-%y %I:%M%p')}" for m in matchlist_responses[i]['matches']
+			))

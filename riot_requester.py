@@ -309,7 +309,9 @@ REQ_DICT = {
 	"champion_mastery": UrlBuilder("lol/champion-mastery/v4/champion-masteries/by-summoner/{encrypted_summoner_id}"),
 	"status": UrlBuilder("lol/status/v3/shard-data"),
 	"matchlist": UrlBuilder("lol/match/v4/matchlists/by-account/{encrypted_account_id}",
-		set(('champion', 'queue', 'season', 'endTime', 'beginTime', 'endIndex', 'beginIndex')))
+		set(('champion', 'queue', 'season', 'endTime', 'beginTime', 'endIndex', 'beginIndex'))),
+	"match": UrlBuilder("lol/match/v4/matches/{match_id}"),
+	"match_timeline": UrlBuilder("lol/match/v4/timelines/by-match/{match_id}")
 }
 
 def _get_req_url(req_type:str, **req_params_kargs):
