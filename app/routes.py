@@ -1,7 +1,8 @@
-from flask import Flask, render_template
-import riot_requester
+from app import app
+from app import riot_requester
 
-app = Flask(__name__)
+from flask import render_template
+
 requester = riot_requester.get(trace=False, email='bobelement4181@gmail.com', password='testtest')
 
 @app.route("/")
@@ -15,6 +16,3 @@ def about():
 @app.route("/test")
 def test():
     return requester.request("summoner_info", summoner_name='tsimplet')
-
-if __name__ == "__main__":
-    app.run(debug=True)

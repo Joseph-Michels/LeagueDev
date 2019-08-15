@@ -1,4 +1,4 @@
-import riot_requester
+from app import riot_requester
 from pprint import pprint
 from time import sleep
 from datetime import datetime

@@ -1,5 +1,5 @@
-import riot_requester
-from ddragon_requester import request as ddragon_request
+from app import riot_requester
+from app.ddragon_requester import request as ddragon_request
 from datetime import datetime
 
 requester = riot_requester.get(trace=False)

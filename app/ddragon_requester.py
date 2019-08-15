@@ -1,5 +1,5 @@
 import requests
-from url_builder import UrlBuilder
+from app.url_builder import UrlBuilder
 
 PATCH = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()[0]
 DDRAGON_URL = f"https://ddragon.leagueoflegends.com/cdn/{PATCH}/"

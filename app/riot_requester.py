@@ -5,7 +5,7 @@ from time import time as _time
 get_time = lambda : _time() - 1500000000  # TODO: safely remove arbitrary constant that could mess timestamps up
 from pprint import pprint
 
-from url_builder import UrlBuilder
+from app.url_builder import UrlBuilder
 
 '''
 TODO:
