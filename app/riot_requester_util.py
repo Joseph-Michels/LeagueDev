@@ -1,8 +1,12 @@
+'''
+TODO: make it actual util
+these tests moved to html
+'''
 from app import riot_requester
 from app.ddragon_requester import request as ddragon_request
 from datetime import datetime
 
-requester = riot_requester.get(trace=False)
+requester = riot_requester.get(trace=True)
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
 
 def get_champion(id:int) -> str:
@@ -39,9 +43,11 @@ def player_match_score(summoner:str, match:dict):
 			return f"{d['kills']}/{d['deaths']}/{d['assists']}"
 
 
-if __name__ == "__main__":	
-	#SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
-	SUMMONERS = ['TsimpleT']
+def summary():
+	s = ""
+
+	SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
+	# SUMMONERS = ['TsimpleT']
 
 	league_responses = []
 	champion_mastery_responses = []
@@ -55,7 +61,7 @@ if __name__ == "__main__":
 		champion_mastery_responses.append(requester.request("champion_mastery", **summoner_id_kargs))
 
 		account_id_kargs = {'encrypted_account_id': summoner_response['accountId']}
-		this_matchlist_response = requester.request("matchlist", **account_id_kargs, beginIndex=0, endIndex=15)
+		this_matchlist_response = requester.request("matchlist", **account_id_kargs, beginIndex=0, endIndex=5)
 		matchlist_responses.append(this_matchlist_response)
 		for m in this_matchlist_response['matches']:
 			match_ids.add(m['gameId'])
@@ -66,12 +72,14 @@ if __name__ == "__main__":
 
 	for i in range(len(SUMMONERS)):
 		summ = SUMMONERS[i]
-		print(f'Information for "{summ}":')
-		print("    Ranks:")
-		print('\n'.join(f"        {rank}" for rank in get_ranks(league_responses[i])))
-		print("    Champions")
-		print('\n'.join(f"        {get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
-		print("    Recent Matches")
-		print('\n'.join(
+		s += (f'Information for "{summ}":') + '\n'
+		s += ("    Ranks:") + '\n'
+		s += ('\n'.join(f"        {rank}" for rank in get_ranks(league_responses[i]))) + '\n'
+		s += ("    Champions")
+		s += ('\n'.join(f"        {get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
+		s += ("    Recent Matches")
+		s += ('\n'.join(
 			f"        {match_result(summ, matches[m['gameId']], past_tense=True)} a {get_champion(m['champion'])} game #{m['gameId']} with a score of {player_match_score(summ, matches[m['gameId']])} on {datetime.fromtimestamp(int(m['timestamp'])/1000).strftime('%m-%d-%y %I:%M%p')}" for m in matchlist_responses[i]['matches']
 			))
+
+	return s

@@ -92,7 +92,7 @@ class Requester:
 		msg = f'Attempting to Request "{req_type}"'
 		trace('-'*len(msg))
 		trace(msg)
-
+		
 		self._remove_old_timestamps(req_type)
 		if self._can_request(req_type):
 			response = self._get_handle_response(req_type, **req_params_kargs)
@@ -101,9 +101,12 @@ class Requester:
 				return response.json()
 		else:
 			print(f'Cannot request "{req_type}" due to rate limits.')
-
+		'''
+		url = _get_req_url(req_type, **req_params_kargs)
+		return requests.get(f"{RIOT_URL}{url}", headers=HEADER).json()
+		'''
+		
 		return None
-
 
 	def _remove_old_timestamps(self, req_type:str):
 		"""
@@ -198,7 +201,6 @@ class Requester:
 		response = requests.get(f"{RIOT_URL}{url}", headers=HEADER)
 
 		if response.status_code == 200: # return if ok (200)
-			trace(response.json())
 			return response
 		elif response.status_code == 429: # got rate limited, add retry_after
 			time = get_time()
