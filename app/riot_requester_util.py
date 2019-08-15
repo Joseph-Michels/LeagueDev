@@ -6,7 +6,7 @@ from app import riot_requester
 from app.ddragon_requester import request as ddragon_request
 from datetime import datetime
 
-requester = riot_requester.get(trace=True)
+requester = riot_requester.get(trace=True, email='bobelement4181@gmail.com', password='testtest')
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
 
 def get_champion(id:int) -> str:
