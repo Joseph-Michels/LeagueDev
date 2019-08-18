@@ -3,4 +3,5 @@
 lib
 downloads
 .vs
-/keys
+.vscode
+/credentials
