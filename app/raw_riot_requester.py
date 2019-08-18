@@ -8,14 +8,13 @@ from app.url_builder import UrlBuilder
 '''
 TODO:
 UPDATE DOCUMENTATION
-TEST SERVICE EXPO SOMEHOW
 '''
 
 class RawRiotRequester:
-	HEADER = ""
+	REQ_HEADER = ""
 	try:
-		with open("keys/riot.txt", 'r') as f:
-			HEADER = {"X-Riot-Token":f.readline().rstrip()}
+		with open("credentials/riot.txt", 'r') as f:
+			REQ_HEADER = {"X-Riot-Token":f.readline().rstrip()}
 	except FileNotFoundError:
 		raise FileNotFoundError('Missing firebase config in "credentials/firebase_config.txt"')
 
@@ -76,7 +75,7 @@ class RawRiotRequester:
 		self.trace('-'*len(msg))
 		self.trace(msg)
 
-		return requests.get(f"https://{self.region}.{RawRiotRequester.URL}/{url_end}", headers=RawRiotRequester.HEADER)
+		return requests.get(f"https://{self.region}.{RawRiotRequester.URL}/{url_end}", headers=RawRiotRequester.REQ_HEADER)
 
 
 	def update_trace(self, new_trace):

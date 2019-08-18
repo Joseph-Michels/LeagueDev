@@ -1,16 +1,12 @@
 import pyrebase
 
-config = {
-	'apiKey': "AIzaSyBkiDeRm6ZKergpdVH_zSBceTLNsLCrMLQ",
-	'authDomain': "leaguedev-57c5d.firebaseapp.com",
-	'databaseURL': "https://leaguedev-57c5d.firebaseio.com",
-	'projectId': "leaguedev-57c5d",
-	'storageBucket': "leaguedev-57c5d.appspot.com",
-	'messagingSenderId': "44032877576",
-	'appId': "1:44032877576:web:df52a4cd48875ecd"
-}
+firebase = None
+try:
+    with open("credentials/firebase_config.txt", 'r') as f:
+        firebase = pyrebase.initialize_app(eval(f.read()))
+except FileNotFoundError:
+    raise FileNotFoundError('Missing firebase config in "credentials/firebase_config.txt"')
 
-firebase = pyrebase.initialize_app(config)
 print(firebase)
 auth = firebase.auth()
 
