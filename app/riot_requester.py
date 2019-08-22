@@ -31,9 +31,7 @@ class RiotRequester:
 		"league_info":		UrlBuilder("lol/league/v4/entries/by-summoner/{encrypted_summoner_id}"),
 		"champion_mastery":	UrlBuilder("lol/champion-mastery/v4/champion-masteries/by-summoner/{encrypted_summoner_id}"),
 		"status":			UrlBuilder("lol/status/v3/shard-data"),
-		"matchlist":		UrlBuilder("lol/match/v4/matchlists/by-account/{encrypted_account_id}",
-								set(('champion', 'queue', 'season', 'endTime', 'beginTime', 'endIndex', 'beginIndex'))
-							),
+		"matchlist":		UrlBuilder("lol/match/v4/matchlists/by-account/{encrypted_account_id}"),
 		"match":			UrlBuilder("lol/match/v4/matches/{match_id}"),
 		"match_timeline":	UrlBuilder("lol/match/v4/timelines/by-match/{match_id}")
 	}
