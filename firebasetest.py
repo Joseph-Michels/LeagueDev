@@ -1,4 +1,5 @@
 import pyrebase
+from time import time
 
 firebase = None
 try:
@@ -22,22 +23,37 @@ data = {
     "name": "Mortimer 'Morty' Smith"
 }
 
+s = time()
 # To save data with a unique, auto-generated, timestamp-based key, use the push() method.
 push_result = database.child("tests").push(data, user['idToken'])
-print(push_result)
+e = time()
+print(f"push {push_result}: {e-s}")
 
+
+s = time()
+not_push_result = database.child(f"tests/{database.generate_key()}").set(data, user['idToken'])
+e = time()
+print(f"not push {not_push_result}: {e-s}")
+
+
+s = time()
 # To create your own keys use the set() method. The key in the example below is "Morty".
 # Think it just updates if it already exists
 set_result = database.child("tests").child("Morty").set(data, user['idToken'])
-print(set_result)
+e = time()
+print(f"set {set_result}: {e-s}")
 
+s = time()
 # To update data for an existing entry use the update() method.
 update_result = database.child("tests").child("Morty").update({"name": "Mortiest Morty"}, user['idToken'])
-print(update_result)
+e = time()
+print(f"update {update_result}: {e-s}")
 
+s = time()
 # To delete data for an existing entry use the remove() method.
 remove_result = database.child("tests").child("Morty").remove(user['idToken'])
-print(remove_result)
+e = time()
+print(f"rem {remove_result}: {e-s}")
 
 data = {
     "tests/Morty/": {
@@ -48,18 +64,15 @@ data = {
     }
 }
 
+s = time()
 multi_result = database.update(data, user['idToken'])
-print(multi_result)
+e = time()
+print(f"multi_update {multi_result}: {e-s}")
 
-
+s = time()
 tests = database.child("tests").get(user['idToken'])
+e = time()
+print(f"get: {e-s}")
 print(tests.val()) # key
 print(tests.key()) # val
 
-# To listen to live changes to data with the stream() method
-def stream_handler(message):
-    print(message["event"]) #put
-    print(message["path"])
-    print(message["data"]) # {'name': 'Mortimer 'Morty' Smith', etc}
-
-my_stream = database.child("posts").stream(stream_handler)

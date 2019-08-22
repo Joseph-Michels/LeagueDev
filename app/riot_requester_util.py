@@ -46,7 +46,7 @@ def player_match_score(summoner:str, match:dict):
 def summary():
 	s = ""
 
-	SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
+	SUMMONERS = ['jamerr102030', 'TsimpleT', 'SuperFranky', 'JDG Yagao', 'Takaharu', 'A Little Cat']
 	# SUMMONERS = ['TsimpleT']
 
 	league_responses = []

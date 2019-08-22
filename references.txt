@@ -1,6 +1,10 @@
 cd /mnt/c/Users/JosephM/Coding/LeagueDev
 
+https://realpython.com/intro-to-python-threading/
+https://gist.github.com/sebdah/832219525541e059aefa
+
 WEB STUFF AND PYTHON AND HTML
+https://stackoverflow.com/questions/14525029/display-a-loading-message-while-a-time-consuming-function-is-executed-in-flask
 https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
 weebly wix squarespace if no python/flask
 https://www.reddit.com/r/flask/comments/2321oc/easiest_and_fastest_way_to_host_flask_python/
