@@ -15,13 +15,10 @@ TEST SERVICE EXPO SOMEHOW
 HEADER = ""
 CONFIG = ""
 
-try:
-	with open("keys/riot.txt", 'r') as f:
-		HEADER = {"X-Riot-Token":f.readline().rstrip()}
-	with open("keys/firebase.txt", 'r') as f:
-		CONFIG = eval(f.read())
-except FileNotFoundError:
-	raise FileNotFoundError("You need a keys folder with valid credentials stored in riot.txt and firebase.txt")
+with open("credentials/riot.txt", 'r') as f:
+    HEADER = {"X-Riot-Token":f.readline().rstrip()}
+with open("credentials/firebase_config.txt", 'r') as f:
+    CONFIG = eval(f.read())
 
 RIOT_URL = "https://na1.api.riotgames.com/"
 
@@ -131,6 +128,7 @@ class Requester:
 					for key, timestamp in limit_timestamp_dict['timestamps'].items():
 						if time > timestamp + int(duration):
 							self.get_timestamps('method').child(f"{req_type}/{duration}/timestamps/{key}").remove(self.get_user_id_token())
+		print(f"_remove_old_timestamps: {get_time()-time}")
 
 
 	def _can_request(self, req_type:str) -> bool:
@@ -188,7 +186,7 @@ class Requester:
 				if 'timestamps' in limit_timestamp_dict and len(limit_timestamp_dict['timestamps']) >= int(limit_timestamp_dict['limit']):
 					trace(f"Method: Called {len(limit_timestamp_dict['timestamps'])}/{limit_timestamp_dict['limit']} in {duration}s")
 					return False
-
+		print(f"_can_request: {get_time()-time}")
 		return True
 
 
@@ -197,8 +195,10 @@ class Requester:
 		Uses the requests api to make the request. Handles rate limits and adds
 		retry_after messages to firebase.
 		"""
+		time = get_time()
 		url = _get_req_url(req_type, **req_params_kargs)
 		response = requests.get(f"{RIOT_URL}{url}", headers=HEADER)
+		print(f"requests api: {get_time()-time}")
 
 		if response.status_code == 200: # return if ok (200)
 			return response
@@ -211,11 +211,11 @@ class Requester:
 				trace(f"EXCEEDED RATE LIMIT: {rate_limit_type}, retry after {retry_after}s")
 
 				if rate_limit_type == 'application':
-					self.get_rate_limits('app').push(retry_after_timestamp, self.get_user_id_token())
+					self.get_rate_limits('app').child(self.firebase.database().generate_key()).update(retry_after_timestamp, self.get_user_id_token())
 				elif rate_limit_type == 'method':
-					self.get_rate_limits('method').child(req_type).push(retry_after_timestamp, self.get_user_id_token())
+					self.get_rate_limits('method').child(req_type+'/'+self.firebase.database().generate_key()).update(retry_after_timestamp, self.get_user_id_token())
 				elif rate_limit_type == 'service':
-					self.get_rate_limits('service').push(retry_after_timestamp, self.get_user_id_token())
+					self.get_rate_limits('service').child(self.firebase.database().generate_key()).update(retry_after_timestamp, self.get_user_id_token())
 				else:
 					raise ValueError(f"Unexpected rate_limit_type {rate_limit_type}")
 			else:
@@ -239,7 +239,7 @@ class Requester:
 
 				print(prev_rate_limits)
 				# add timestamp with doubled retry_after
-				self.get_rate_limits('service_expo').push({'timestamp': time, 'retry_after': 2*highest_retry_after}, self.get_user_id_token())
+				self.get_rate_limits('service_expo').child(self.firebase.database().generate_key()).update({'timestamp': time, 'retry_after': 2*highest_retry_after}, self.get_user_id_token())
 
 			return None
 		else:
@@ -290,6 +290,8 @@ class Requester:
 				self.get_timestamps('method').child(f"{req_type}/{duration}").update(d, self.get_user_id_token())
 
 			trace(f'    method "{req_type}": (', " | ".join(f"{d['limit']} in {duration}s" for duration, d in method_limits_dict.items()), ")")
+
+		print(f"_add_timestamps: {get_time()-time}")
 
 
 	def get_timestamps(self, timestamp_type:str = None):

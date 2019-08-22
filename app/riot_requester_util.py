@@ -6,7 +6,9 @@ from app import riot_requester
 from app.ddragon_requester import request as ddragon_request
 from datetime import datetime
 
-requester = riot_requester.get(trace=True, email='bobelement4181@gmail.com', password='testtest')
+requester = None
+with open("credentials/firebase_login.txt", 'r') as f:
+	requester = riot_requester.get(trace=True, email=f.readline().rstrip(), password=f.readline().rstrip())
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
 
 def get_champion(id:int) -> str:
@@ -46,8 +48,8 @@ def player_match_score(summoner:str, match:dict):
 def summary():
 	s = ""
 
-	SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
-	# SUMMONERS = ['TsimpleT']
+	#SUMMONERS = ['jamerr102030', 'TsimpleT', 'Takaharu', 'Neo Star', 'Tzuyu Fanboy']
+	SUMMONERS = ['TsimpleT']
 
 	league_responses = []
 	champion_mastery_responses = []
