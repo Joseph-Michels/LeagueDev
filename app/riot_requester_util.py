@@ -1,12 +1,9 @@
-'''
-TODO: make it actual util
-these tests moved to html
-'''
-from app import riot_requester
+# moving away from
+from app.riot_requester import RiotRequester
 from app.ddragon_requester import request as ddragon_request
 from datetime import datetime
 
-requester = riot_requester.get(trace=True, email='bobelement4181@gmail.com', password='testtest')
+requester = RiotRequester(region='na', trace=True)
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
 
 def get_champion(id:int) -> str:
@@ -42,7 +39,7 @@ def player_match_score(summoner:str, match:dict):
 			d = participant_dict['stats']
 			return f"{d['kills']}/{d['deaths']}/{d['assists']}"
 
-
+'''
 def summary():
 	s = ""
 
@@ -83,3 +80,4 @@ def summary():
 			))
 
 	return s
+'''
