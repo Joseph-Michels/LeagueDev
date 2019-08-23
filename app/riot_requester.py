@@ -2,7 +2,10 @@ import requests
 import pyrebase
 import time
 get_time = time.time
-from threading import Thread
+from functools import wraps
+from pprint import pprint
+from sys import stdout
+from datetime import datetime
 
 from app.url_builder import UrlBuilder
 from app.ddragon_requester import request as ddragon_request
@@ -13,10 +16,35 @@ UPDATE DOCUMENTATION
 TEST SERVICE EXPO SOMEHOW
 '''
 
+class OneAtATime:
+    lock_dict = {}
+
+    def __init__(self, key):
+        self.key = key
+        if key not in OneAtATime.lock_dict:
+            self._unlock()
+        
+    def _unlock(self):
+        OneAtATime.lock_dict[self.key] = False
+    def _lock(self):
+        OneAtATime.lock_dict[self.key] = True
+    def is_locked(self):
+        return OneAtATime.lock_dict[self.key]
+
+    def __call__(self, fxn):
+        @wraps(fxn)
+        def wrapper_function(*args, **kargs):
+            while True:
+                if not self.is_locked():
+                    self._lock()
+                    val = fxn(*args, **kargs)
+                    self._unlock()
+                    return val
+        return wrapper_function
+
 class RiotRequester:
     """
     """
-
     REQ_HEADER = ""
     try:
         with open("credentials/riot.txt", 'r') as f:
@@ -41,7 +69,10 @@ class RiotRequester:
 		"OCE":'OC1',	"TR":'TR1',		"RU":'RU',		"PBE":'PBE1'
 	}
 
-    def __init__(self, region:str, to_trace:bool=False):
+    
+
+
+    def __init__(self, region:str, trace:bool=False, log:bool=True):
         # initialize firebase
         try:
             with open("credentials/firebase_config.txt", 'r') as f:
@@ -58,72 +89,98 @@ class RiotRequester:
             raise FileNotFoundError('Missing firebase login in "credentials/firebase_login.txt"')
 
         # requesting + thread
-        self._queued_requests = []
-        self._thread = Thread(target=RiotRequester._request_queued, args=())
-        self._responses = {}
-        self._to_publish = {}
+        #self._queued_requests = []
+        #self._thread = Thread(target=RiotRequester._request_queued, args=())
+        #self._reserve_lock = Lock()
+        #self._responses = {}
+        #self._to_publish = {}
 
-        # parameter initializations
+        # initialize region
+        region = region.upper()
         if region in RiotRequester.REGION_CODES.keys():
             region = RiotRequester.REGION_CODES[region]
         else:
             assert region in RiotRequester.REGION_CODES.values(), f'Region "{region}" not found.'
         self.region = region
-        self.to_trace = to_trace
 
-    
-    def _raw_request(self, req_type:str, **req_params_kargs) -> requests.Response:
-        assert req_type in RiotRequester.REQ_URL_BUILDER, f'Request Type "{req_type} undefined.'
-        
-        url_end = RiotRequester.REQ_URL_BUILDER[req_type].build(**req_params_kargs)
-        
-        msg = f'Requesting "{req_type}": "{url_end}"'
-        self.trace('-'*len(msg))
-        self.trace(msg)
-        
-        return requests.get(f"https://{self.region}.{RiotRequester.URL}/{url_end}", headers=RiotRequester.REQ_HEADER)
-
-    
-    def _request_queued(self):
-        pass
+        # initialize debug tools
+        self._to_trace = trace
+        self._to_log = log
+        if log:
+            self._log_id = datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
 
 
-    def synch_get_response(self, req_url:str):
-        while True:
-            if req_url in self._responses:
-                return self._responses[req_url]
-            time.sleep(3)
-
-    
-    def trace(self, *args, **kargs):
+    def _open_log_streams_dict(self):
+        if not self._to_trace and not self._to_log:
+            return None
+        else:
+            streams_dict = {'system':[], 'to_close':[]}
+            if self._to_trace:
+                streams_dict['system'].append(stdout)
+            if self._to_log:
+                streams_dict['to_close'].append(open(f'logs/log-{self._log_id}.txt', 'a'))
+            return streams_dict
+    def log(self, *args, **kargs):
         """
 		Takes an object or objects and prints it or them if the Requester is tracing.
 		Calls pprint on iterables (for pretty print) and print on other objects.
 		"""
-        if self.to_trace:
+        streams_dict = self._open_log_streams_dict()
+
+        if streams_dict is not None:
+            streams = [stream for arr in streams_dict.values() for stream in arr]
             if len(kargs) == 0 and len(args) == 1 and type(args[0]) is not str:
+                # if iterable, pprint the iterable that is the first/only arg
                 try:
                     iter(args[0])
-                    pprint(args[0]) # pretty print iterables
+                    for stream in streams:
+                        pprint(args[0], stream=stream)
                     return
                 except:
                     pass
-            print(*args, **kargs)
+            # otherwise regular print
+            for stream in streams:
+                print(*args, **kargs, file=stream)
+        
+        # close applicable streams
+        for stream in streams_dict['to_close']:
+            stream.close()
+        
+    
+    def _request(self, req_type:str, **req_params_kargs) -> dict:
+        assert req_type in RiotRequester.REQ_URL_BUILDER, f'Request Type "{req_type} undefined.'
+        url_end = RiotRequester.REQ_URL_BUILDER[req_type].build(**req_params_kargs)
+        
+        self.log(f'Requesting "{req_type}": "{url_end}"')
+        '''
+        self._remove_old_timestamps(req_type)
+        if self._can_request(req_type):
+            response = self._get_handle_response(req_type, **req_params_kargs)
+            if response is not None:
+                self._add_timestamps(response.headers, req_type)
+                return response.json()
+        else:
+            print(f'Cannot request "{req_type}" due to rate limits.')
+        '''
 
+        return requests.get(f"https://{self.region}.{RiotRequester.URL}/{url_end}", headers=RiotRequester.REQ_HEADER)
+
+    def _get_timestamps(self):
+        pass
+
+
+    @OneAtATime(key='RiotRequester')
+    def safe_request(self, req_type:str, **req_params_kargs) -> requests.Response:
+        return self._request(req_type, **req_params_kargs)
+    
     
     def get_user(self) -> dict:
         if get_time() > self._user_init_time + float(self._user['expiresIn']):
             self._user_init_time = get_time()
             self._user = self.firebase.auth().refresh(self._user['refreshToken'])
         return self._user
-    
-
     def get_user_id_token(self) -> str:
         return self.get_user()['idToken']
-
-
-    def _queue_request(self, req_url:str):
-        self._queued_requests += req_url
 
 
     def _get_req_url(self, req_type:str, **req_params_kargs):
@@ -131,64 +188,12 @@ class RiotRequester:
         return RiotRequester.REQ_URL_BUILDER[req_type].build(**req_params_kargs)
 
 
-    def _store_timestamps(self, resp_headers:dict, req_type:str):
-        """
-        Stores timestamps of calls to the app and this method.
-        """
-        self.trace("  Adding Timestamps For Response")
-
-        time = get_time()
-
-        self.trace(f"    time: {time}")
-        self.trace(f"    headers: {[key for key in resp_headers]}")
-
-		# get rate limits in array of "max_calls:duration"
-		# parses this array of strings
-        if 'X-App-Rate-Limit' in resp_headers:
-            app_limits_arr = resp_headers['X-App-Rate-Limit'].split(',')
-            app_limits_dict = {}
-            
-            for ratio_str in app_limits_arr:
-                colon_idx = ratio_str.index(':')
-                
-                max_calls = int(ratio_str[:colon_idx])
-                duration = int(ratio_str[colon_idx+1:])
-                
-                app_limits_dict[duration] = max_calls
-
-                base = f'timestamps/app/{duration}'
-                self._to_publish[base+'/limit'] = max_calls
-                self._to_publish[f'{base}/timestamps/{self.firebase.database().generate_key()}'] = time
-                
-            self.trace("    app: (", " | ".join(f"{limit} in {duration}s" for duration, limit in app_limits_dict.items()), ")")
+    @OneAtATime(key='RiotRequester')
+    def get_summoners_rundown(self, *summoners):
+        if len(summoners) == 1 and type(summoners[0]) == list:
+            summoners = summoners[0]
         
-        if 'X-Method-Rate-Limit' in resp_headers:
-            method_limits_arr = resp_headers['X-Method-Rate-Limit'].split(',')
-            method_limits_dict = {}
-            
-            for ratio_str in method_limits_arr:
-                colon_idx = ratio_str.index(':')
-                
-                max_calls = int(ratio_str[:colon_idx])
-                duration = int(ratio_str[colon_idx+1:])
+        summoner_responses = [self._request("summoner_info", summoner_name=summoner) for summoner in summoners]
 
-                method_limits_dict[duration] = max_calls
-                
-                base = f'timestamps/method/{req_type}/{duration}'
-                self._to_publish[base+'/limit'] = max_calls
-                self._to_publish[f'{base}/timestamps/{self.firebase.database().generate_key()}'] = time
-                
-                
-            self.trace(f'    method "{req_type}": (', " | ".join(f"{limit} in {duration}s" for duration, limit in method_limits_dict.items()), ")")
-
-    
-    def get_summoner_rundown(self, summoners:[str]):
-        summoner_req_urls = []
-        for summoner in summoners:
-            url = self._get_req_url("summoner_info", summoner_name=summoner)
-            summoner_req_urls.append(url)
-            self._queue_request(url)
-
-        summoner_responses = []
-        for url in summoner_req_urls:
-            summoner_responses.append(self.synch_get_response(url))
+        time.sleep(5)
+        return summoner_responses

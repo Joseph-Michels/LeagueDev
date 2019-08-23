@@ -1,5 +1,9 @@
 cd /mnt/c/Users/JosephM/Coding/LeagueDev
 
+https://realpython.com/primer-on-python-decorators/ "is the user logged in?"
+https://github.com/tomasbasham/ratelimit
+https://pypi.org/project/backoff/
+
 https://realpython.com/intro-to-python-threading/
 https://gist.github.com/sebdah/832219525541e059aefa
 
