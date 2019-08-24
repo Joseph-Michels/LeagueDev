@@ -70,13 +70,13 @@ def summary():
 	for i in range(len(SUMMONERS)):
 		summ = SUMMONERS[i]
 		s += (f'Information for "{summ}":') + '\n'
-		s += ("    Ranks:") + '\n'
-		s += ('\n'.join(f"        {rank}" for rank in get_ranks(league_responses[i]))) + '\n'
-		s += ("    Champions")
-		s += ('\n'.join(f"        {get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
-		s += ("    Recent Matches")
+		s += ("	Ranks:") + '\n'
+		s += ('\n'.join(f"		{rank}" for rank in get_ranks(league_responses[i]))) + '\n'
+		s += ("	Champions")
+		s += ('\n'.join(f"		{get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
+		s += ("	Recent Matches")
 		s += ('\n'.join(
-			f"        {match_result(summ, matches[m['gameId']], past_tense=True)} a {get_champion(m['champion'])} game #{m['gameId']} with a score of {player_match_score(summ, matches[m['gameId']])} on {datetime.fromtimestamp(int(m['timestamp'])/1000).strftime('%m-%d-%y %I:%M%p')}" for m in matchlist_responses[i]['matches']
+			f"		{match_result(summ, matches[m['gameId']], past_tense=True)} a {get_champion(m['champion'])} game #{m['gameId']} with a score of {player_match_score(summ, matches[m['gameId']])} on {datetime.fromtimestamp(int(m['timestamp'])/1000).strftime('%m-%d-%y %I:%M%p')}" for m in matchlist_responses[i]['matches']
 			))
 
 	return s

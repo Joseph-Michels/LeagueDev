@@ -3,10 +3,10 @@ from time import time
 
 firebase = None
 try:
-    with open("credentials/firebase_config.txt", 'r') as f:
-        firebase = pyrebase.initialize_app(eval(f.read()))
+	with open("credentials/firebase_config.txt", 'r') as f:
+		firebase = pyrebase.initialize_app(eval(f.read()))
 except FileNotFoundError:
-    raise FileNotFoundError('Missing firebase config in "credentials/firebase_config.txt"')
+	raise FileNotFoundError('Missing firebase config in "credentials/firebase_config.txt"')
 
 print(firebase)
 auth = firebase.auth()
@@ -20,7 +20,7 @@ print(type(user))
 database = firebase.database()
 
 data = {
-    "name": "Mortimer 'Morty' Smith"
+	"name": "Mortimer 'Morty' Smith"
 }
 
 s = time()
@@ -56,12 +56,12 @@ e = time()
 print(f"rem {remove_result}: {e-s}")
 
 data = {
-    "tests/Morty/": {
-        "name": "Mortimer 'Morty' Smith"
-    },
-    "tests/Rick/": {
-        "name": "Rick Sanchez"
-    }
+	"tests/Morty/": {
+		"name": "Mortimer 'Morty' Smith"
+	},
+	"tests/Rick/": {
+		"name": "Rick Sanchez"
+	}
 }
 
 s = time()
