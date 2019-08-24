@@ -1,83 +1,69 @@
-# moving away from
+from functools import wraps
+
 from app.riot_requester import RiotRequester
 from app.ddragon_requester import request as ddragon_request
-from datetime import datetime
+from app.decarators import OneOfAKeyAtATime
 
-requester = RiotRequester(region='na', trace=True)
+TRACE = False
+LOG = True
+REGIONS = frozenset(['NA'])
+
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
 
 def get_champion(id:int) -> str:
 	return CHAMPION_KEYS[id]
-def get_ranks(league_info:dict):
-	return (f"{l['queueType']}: {l['tier']} {l['rank']} ({l['wins']}-{l['losses']})" for l in league_info)
 
-def participant_id(summoner:str, match:dict):
-	for participant_id_dict in match['participantIdentities']:
-		if participant_id_dict['player']['summonerName'] == summoner:
-			return participant_id_dict['participantId']
+REQUESTERS = {region:RiotRequester(region, TRACE, LOG) for region in REGIONS}
 
-# 100 blue, 200 red
-def side(summoner:str, match:dict):
-	idx = participant_id(summoner, match)
-	for participant_dict in match['participants']:
-		if participant_dict['participantId'] == idx:
-			return participant_dict['teamId']
+class UpdateRateLimitsTimestamps:
+	"""
+	Can only decorate functions with the region as the first argument.
+	"""
+	def __call__(self, fxn):
+		@wraps(fxn)
+		def wrapper_function(*args, **kargs):
+			requester = REQUESTERS[args[0].upper()] # args[0] is region string
 
-# past_tense: "Won"/"Lost"
-# not past_tense: "Win"/"Loss"
-def match_result(summoner:str, match:dict, past_tense=False):
-	s = side(summoner, match)
-	for team_dict in match['teams']:
-		if team_dict['teamId'] == s:
-			val = team_dict['win']
-			return ("Lost" if val == "Fail" else "Won") if past_tense else ("Loss" if val == "Fail" else val)
+			requester.read_rate_limits()
+			requester.read_timestamps()
 
-def player_match_score(summoner:str, match:dict):
-	idx = participant_id(summoner, match)
-	for participant_dict in match['participants']:
-		if participant_dict['participantId'] == idx:
-			d = participant_dict['stats']
-			return f"{d['kills']}/{d['deaths']}/{d['assists']}"
+			val = fxn(*args, **kargs)
 
-'''
-def summary():
-	s = ""
+			requester.write_rate_limits()
+			requester.write_timestamps()
+			
+			return val
+		return wrapper_function
 
-	SUMMONERS = ['jamerr102030', 'TsimpleT', 'SuperFranky', 'JDG Yagao', 'Takaharu', 'A Little Cat']
-	# SUMMONERS = ['TsimpleT']
+@OneOfAKeyAtATime(key='Requester')
+@UpdateRateLimitsTimestamps()
+def safe_request(region:str, req_type:str, **req_params_kargs) -> dict:
+	return REQUESTERS[region.upper()]._request(req_type, **req_params_kargs)
 
-	league_responses = []
-	champion_mastery_responses = []
-	matchlist_responses = []
+@OneOfAKeyAtATime(key='Requester')
+@UpdateRateLimitsTimestamps()
+def get_summoners_rundown(region:str, *summoners):
+	if len(summoners) == 1 and type(summoners[0]) == list:
+		summoners = summoners[0]
+	request = REQUESTERS[region.upper()]._request
+	
+	responses = {summoner:{} for summoner in summoners}
+	responses['matches'] = {}
 	match_ids = set()
-	for summoner in SUMMONERS:
-		summoner_response = requester.request("summoner_info", summoner_name=summoner)
+	for summoner in summoners:
+		summoner_response = request("summoner_info", summoner_name=summoner)
 
 		summoner_id_kargs = {'encrypted_summoner_id': summoner_response['id']}
-		league_responses.append(requester.request("league_info", **summoner_id_kargs))
-		champion_mastery_responses.append(requester.request("champion_mastery", **summoner_id_kargs))
+		responses[summoner]['league'] = request("league_info", **summoner_id_kargs)
+		responses[summoner]['champion_mastery'] = request("champion_mastery", **summoner_id_kargs)
 
 		account_id_kargs = {'encrypted_account_id': summoner_response['accountId']}
-		this_matchlist_response = requester.request("matchlist", **account_id_kargs, beginIndex=0, endIndex=5)
-		matchlist_responses.append(this_matchlist_response)
+		this_matchlist_response = request("matchlist", **account_id_kargs, beginIndex=0, endIndex=10)
+		responses[summoner]['matchlist'] = this_matchlist_response
 		for m in this_matchlist_response['matches']:
 			match_ids.add(m['gameId'])
 
-	matches = {}
 	for match_id in match_ids:
-		matches[match_id] = requester.request("match", match_id=match_id)
+		responses['matches'][match_id] = request("match", match_id=match_id)
 
-	for i in range(len(SUMMONERS)):
-		summ = SUMMONERS[i]
-		s += (f'Information for "{summ}":') + '\n'
-		s += ("	Ranks:") + '\n'
-		s += ('\n'.join(f"		{rank}" for rank in get_ranks(league_responses[i]))) + '\n'
-		s += ("	Champions")
-		s += ('\n'.join(f"		{get_champion(info['championId'])} Level {info['championLevel']} ({info['championPoints']})" for info in champion_mastery_responses[i][:10]))
-		s += ("	Recent Matches")
-		s += ('\n'.join(
-			f"		{match_result(summ, matches[m['gameId']], past_tense=True)} a {get_champion(m['champion'])} game #{m['gameId']} with a score of {player_match_score(summ, matches[m['gameId']])} on {datetime.fromtimestamp(int(m['timestamp'])/1000).strftime('%m-%d-%y %I:%M%p')}" for m in matchlist_responses[i]['matches']
-			))
-
-	return s
-'''
+	return responses

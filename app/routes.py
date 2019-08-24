@@ -1,7 +1,6 @@
 from app import app
 
-from app.riot_requester import RiotRequester
-requester = RiotRequester('NA', trace=False)
+import app.riot_requester_util as req_util
 
 #from app import riot_requester_util
 
@@ -20,8 +19,4 @@ def test():
 	# return riot_requester_util.summary()
 	# return requester.request("summoner_info", summoner_name='tsimplet')
 	
-	return requester.get_summoners_rundown('jamerr102030', 'TsimpleT', 'SuperFranky', 'JDG Yagao', 'Takaharu', 'A Little Cat')
-
-@app.route("/test2")
-def test2():
-	return '|'+str(requester.safe_request("summoner_info", summoner_name='tsimplet'))+'|'
+	return req_util.get_summoners_rundown('NA', 'jamerr102030', 'TsimpleT', 'SuperFranky', 'JDG Yagao', 'Takaharu', 'A Little Cat')

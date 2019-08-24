@@ -6,11 +6,8 @@ get_time = time.time
 from pprint import pprint
 from sys import stdout
 from datetime import datetime
-from pathlib import Path
-from functools import wraps
 
 from app.url_builder import UrlBuilder
-from app.ddragon_requester import request as ddragon_request
 from app.decarators import OneOfAKeyAtATime
 
 '''
@@ -151,7 +148,7 @@ class RiotRequester:
 					self._add_timestamps(response.headers, req_type)
 					return response.json()
 			else:
-				self.log(f"  Waiting {pre_delay}s")
+				self.log(f"  Waiting {pre_delay} seconds.")
 				time.sleep(pre_delay)
 
 
@@ -397,58 +394,3 @@ class RiotRequester:
 		return self._user
 	def get_user_id_token(self) -> str:
 		return self.get_user()['idToken']
-
-
-
-	'''
-	==================================================
-	COMBINED REQUEST METHODS
-	==================================================
-	'''
-	@staticmethod
-	def UpdateRateLimitsTimestamps(fxn):
-		@wraps(fxn)
-		def wrapper_function(*args, **kargs):
-			# args[0] is self lol
-			args[0].read_rate_limits()
-			args[0].read_timestamps()
-
-			val = fxn(*args, **kargs)
-
-			args[0].write_rate_limits()
-			args[0].write_timestamps()
-			
-			return val
-		return wrapper_function
-
-	@OneOfAKeyAtATime(key='RiotRequester')
-	@UpdateRateLimitsTimestamps.__func__
-	def safe_request(self, req_type:str, **req_params_kargs) -> requests.Response:
-		return self._request(req_type, **req_params_kargs)
-	
-	@OneOfAKeyAtATime(key='RiotRequester')
-	@UpdateRateLimitsTimestamps.__func__
-	def get_summoners_rundown(self, *summoners):
-		if len(summoners) == 1 and type(summoners[0]) == list:
-			summoners = summoners[0]
-		
-		responses = {summoner:{} for summoner in summoners}
-		responses['matches'] = {}
-		match_ids = set()
-		for summoner in summoners:
-			summoner_response = self._request("summoner_info", summoner_name=summoner)
-
-			summoner_id_kargs = {'encrypted_summoner_id': summoner_response['id']}
-			responses[summoner]['league'] = self._request("league_info", **summoner_id_kargs)
-			responses[summoner]['champion_mastery'] = self._request("champion_mastery", **summoner_id_kargs)
-
-			account_id_kargs = {'encrypted_account_id': summoner_response['accountId']}
-			this_matchlist_response = self._request("matchlist", **account_id_kargs, beginIndex=0, endIndex=10)
-			responses[summoner]['matchlist'] = this_matchlist_response
-			for m in this_matchlist_response['matches']:
-				match_ids.add(m['gameId'])
-
-		for match_id in match_ids:
-			responses['matches'][match_id] = self._request("match", match_id=match_id)
-
-		return responses
