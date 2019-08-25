@@ -6,7 +6,7 @@ from app.decarators import OneOfAKeyAtATime
 
 TRACE = False
 LOG = True
-REGIONS = frozenset(['NA'])
+REGIONS = frozenset(['NA', 'EUW', 'KR'])
 
 CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
 

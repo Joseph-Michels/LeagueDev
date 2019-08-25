@@ -8,3 +8,4 @@ downloads
 /__pycache__
 /app/__pycache__
 /references
+/logs

@@ -1,17 +1,15 @@
-from app import riot_requester
+import app.riot_requester_util as req_util
 from pprint import pprint
 from time import sleep
 from datetime import datetime
 
 T = 30
 
-requester = riot_requester.get(trace=False)
-
-statuses = requester.request("status")
+statuses = req_util.safe_request("NA", "status")
 sleep(T)
 
 while True:
-	next_statuses = requester.request("status")
+	next_statuses = req_util.safe_request("NA", "status")
 
 	if statuses != next_statuses:
 		# if status is different, check and display exactly what changed
