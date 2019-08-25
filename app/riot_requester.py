@@ -53,19 +53,19 @@ class RiotRequester:
 			self._log_id = datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
 
 		'''initialize firebase'''
-		try:
-			with open("credentials/firebase_config.txt", 'r') as f:
-				self.firebase = pyrebase.initialize_app(eval(f.read()))
-		except FileNotFoundError:
-			raise FileNotFoundError('Missing firebase config in "credentials/firebase_config.txt"')
+		# try:
+		# 	with open("credentials/firebase_config.txt", 'r') as f:
+		# 		self.firebase = pyrebase.initialize_app(eval(f.read()))
+		# except FileNotFoundError:
+		# 	raise FileNotFoundError('Missing firebase config in "credentials/firebase_config.txt"')
 
 		'''initialize firebase user credentials'''
-		self._user_init_time = get_time()
-		try:
-			with open("credentials/firebase_login.txt", 'r') as f:
-				self._user = self.firebase.auth().sign_in_with_email_and_password(f.readline().rstrip(), f.readline().rstrip())
-		except FileNotFoundError:
-			raise FileNotFoundError('Missing firebase login in "credentials/firebase_login.txt"')
+		# self._user_init_time = get_time()
+		# try:
+		# 	with open("credentials/firebase_login.txt", 'r') as f:
+		# 		self._user = self.firebase.auth().sign_in_with_email_and_password(f.readline().rstrip(), f.readline().rstrip())
+		# except FileNotFoundError:
+		# 	raise FileNotFoundError('Missing firebase login in "credentials/firebase_login.txt"')
 
 		'''initialize rate limits / timestamps'''
 		self.read_rate_limits() # in self._rate_limits
