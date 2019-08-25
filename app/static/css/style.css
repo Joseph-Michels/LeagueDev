@@ -1,0 +1,19 @@
+body{
+	background: #dff;
+}
+
+#main-header{
+	background: #bdd;
+}
+
+#main-header a{
+	text-decoration: none;
+	color:#000;
+}
+
+/*below not working*/
+/*
+#search-bar{
+	display: block;
+	margin: 0 auto;
+}*/

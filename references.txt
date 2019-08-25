@@ -1,32 +1,31 @@
 cd /mnt/c/Users/JosephM/Coding/LeagueDev
 
-https://realpython.com/primer-on-python-decorators/ "is the user logged in?"
-https://github.com/tomasbasham/ratelimit
-https://pypi.org/project/backoff/
-
-https://realpython.com/intro-to-python-threading/
-https://gist.github.com/sebdah/832219525541e059aefa
-
-WEB STUFF AND PYTHON AND HTML
-https://stackoverflow.com/questions/14525029/display-a-loading-message-while-a-time-consuming-function-is-executed-in-flask
+FLASK
 https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
+https://stackoverflow.com/questions/7478366/create-dynamic-urls-in-flask-with-url-for
+https://flask.palletsprojects.com/en/1.0.x/quickstart/
+
+HOSTING
+https://pages.github.com
+https://tsimplet.github.io/LeagueDev/
+https://docs.djangoproject.com/en/2.1/intro/tutorial01/
 weebly wix squarespace if no python/flask
 https://www.reddit.com/r/flask/comments/2321oc/easiest_and_fastest_way_to_host_flask_python/
 https://cloud.google.com/appengine/docs/standard/python3/building-app/
 https://www.freecodecamp.org/news/how-to-build-a-web-application-using-flask-and-deploy-it-to-the-cloud-3551c985e492/
 https://www.quora.com/How-do-I-incorporate-Python-into-HTML
-https://stackoverflow.com/questions/50465122/python-as-backend-and-html-as-front-end
-https://docs.djangoproject.com/en/2.1/intro/tutorial01/
-https://pages.github.com
-https://tsimplet.github.io/LeagueDev/
-https://www.youtube.com/watch?v=pQN-pnXPaVg (HTML)
 
-PYREBASE
-https://github.com/thisbejim/Pyrebase
-https://www.youtube.com/watch?v=FCw5PFDb99k
+HTML
+https://www.youtube.com/watch?v=pQN-pnXPaVg
+https://stackoverflow.com/questions/14525029/display-a-loading-message-while-a-time-consuming-function-is-executed-in-flask
+https://www.w3schools.com/howto/howto_js_tab_header.asp
+
+CSS
+https://www.youtube.com/watch?v=yfoY53QXEnI
 
 FIREBASE
 https://console.firebase.google.com/project/leaguedev-57c5d/database/leaguedev-57c5d/data
+https://github.com/thisbejim/Pyrebase
 
 GITHUB
 https://github.com/TsImpLeT/LeagueDev
@@ -37,8 +36,3 @@ https://www.epochconverter.com
 https://developer.riotgames.com/api-methods/
 https://developer.riotgames.com/rate-limiting.html
 https://developer.riotgames.com/static-data.html
-
-PREVIOUS PYTHON FIREBASE LIBRARY
-https://ozgur.github.io/python-firebase/
-https://github.com/ozgur/python-firebase
-https://www.youtube.com/channel/UCmFw6mtW6hhMwH48oh1tODA/videos

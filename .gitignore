@@ -5,3 +5,5 @@ downloads
 .vs
 .vscode
 /credentials
+/__pycache__
+/app/__pycache__

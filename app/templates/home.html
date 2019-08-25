@@ -1,19 +1,20 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-
-    <head>
-        <meta charset="utf-8">
-        <title>Home</title>
-    </head>
-
-    <body>
-        {% extends "template.html" %}
-        {% block content %}
-
-        <h1>Home</h1>
-        <p>Home</p>
-
-        {% endblock %}
-    </body>
-
-</html>
+{% extends "banner_template.html" %}
+{% block content %}
+	<form id="search-bar" action="/results/" method="POST">
+		<p>Search For Multiple Summoners</p>
+		<textarea id="search-field"></textarea>
+		<br>
+		<input type="submit" value="Search">
+	</form>
+	
+	<script>
+		document.getElementById("search-bar").addEventListener("submit", e => {
+			var input = document.getElementById("search-field").value;
+			if(input == "") {
+				e.preventDefault();
+				alert("Enter something to search.")
+			} else
+				document.getElementById("search-bar").action += input.replace(/\n/g, ",");
+		});
+	</script>
+{% endblock %}

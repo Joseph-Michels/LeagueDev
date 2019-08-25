@@ -144,9 +144,15 @@ class RiotRequester:
 			pre_delay = self._delay_before_request(req_type)
 			if pre_delay == 0:
 				response = self._get_handled_response(req_type, url_end)
-				if response is not None:
+				if type(response) is requests.models.Response:
 					self._add_timestamps(response.headers, req_type)
 					return response.json()
+				elif type(response) is dict and response['type'] == "ERROR":
+					response = response['response']
+					if response.status_code != 429:
+						d = response.json()['status']
+						d['url'] = url_end
+						raise requests.exceptions.RequestException(str(d))
 			else:
 				self.log(f"  Waiting {pre_delay} seconds.")
 				time.sleep(pre_delay)
@@ -236,7 +242,7 @@ class RiotRequester:
 
 	
 
-	def _get_handled_response(self, req_type:str, url_end:str) -> requests.Response:
+	def _get_handled_response(self, req_type:str, url_end:str) -> requests.models.Response:
 		"""
 		Uses the requests api to make the request. Handles rate limits and adds
 		retry_after messages.
@@ -284,9 +290,8 @@ class RiotRequester:
 						'next_try_timestamp': time+new_retry_after
 					}
 
-			return None
-		else:
-			raise ValueError(f"Request failed with unexpected response code {response.status_code}")
+		
+		return {'type': "ERROR", 'response': response}
 
 
 
@@ -343,11 +348,11 @@ class RiotRequester:
 
 
 	def read_rate_limits(self):
-		with open('app/docs/rate_limits.json', 'r') as f:
+		with open('docs/rate_limits.json', 'r') as f:
 			self._rate_limits = eval(f.read())
 
 	def write_rate_limits(self):
-		with open('app/docs/rate_limits.json', 'w') as f:
+		with open('docs/rate_limits.json', 'w') as f:
 			json.dump(self._rate_limits, f, indent=4)
 
 	def get_rate_limits(self, addr:str='') -> dict:
@@ -363,11 +368,11 @@ class RiotRequester:
 
 
 	def read_timestamps(self):
-		with open('app/docs/timestamps.json', 'r') as f:
+		with open('docs/timestamps.json', 'r') as f:
 			self._timestamps = eval(f.read())
 
 	def write_timestamps(self):
-		with open('app/docs/timestamps.json', 'w') as f:
+		with open('docs/timestamps.json', 'w') as f:
 			json.dump(self._timestamps, f, indent=4)
 
 	def get_timestamps(self, addr:str) -> dict:
