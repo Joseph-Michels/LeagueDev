@@ -11,6 +11,15 @@ body{
 	color:#000;
 }
 
+form #search-field{
+	width: 300px;
+	height: 200px;
+}
+
+#home-loading{
+    display: none;
+} 
+
 /*below not working*/
 /*
 #search-bar{

@@ -1,10 +1,10 @@
 {% extends "banner_template.html" %}
 {% block content %}
-	<div id="loading">
+	<div id="home-loading">
 		<p>Loading Search For:</p>
 		<ul id="searched-list"></ul>
 	</div>
-	<div id="content">
+	<div id="home-content">
 		<form id="search-bar" method="POST">
 			<p>Search For Multiple Summoners</p>
 			<textarea id="search-field"></textarea>
@@ -33,8 +33,8 @@
 					li.appendChild(document.createTextNode(arr[i]));
 					ul.appendChild(li);
 				}
-				document.getElementById("loading").style.display = "block";
-				document.getElementById("content").style.display = "none";
+				document.getElementById("home-loading").style.display = "block";
+				document.getElementById("home-content").style.display = "none";
 			}
         }
 		
