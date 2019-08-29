@@ -2,14 +2,14 @@
 {% block content %}
 	<div id="home-loading">
 		<p>Loading Search For:</p>
-		<ul id="searched-list"></ul>
+		<ul id="loading-list"></ul>
 	</div>
 	<div id="home-content">
 		<form id="search-bar" method="POST">
 			<p>Search For Multiple Summoners</p>
 			<textarea id="search-field"></textarea>
 			<br>
-			<input type="submit" value="Search" onclick="loading();">
+			<input type="submit" action="/home" value="Search" onclick="loading();">
 		</form>
 	</div>
 	
@@ -24,14 +24,25 @@
 		function loading(){
 			var input = document.getElementById("search-field").value;
 			if(input != "") {
-				input = input.replace(/\n/g, ",");
-				document.getElementById("search-bar").action = "/"+input;
-				var ul = document.getElementById("searched-list");
-				var arr = input.split(",");
-				for(var i in arr) {
-					var li = document.createElement("li");
-					li.appendChild(document.createTextNode(arr[i]));
-					ul.appendChild(li);
+				var arr = input.split("\n");input = input.replace(/\n/g, ",");
+				var loadingList = document.getElementById("loading-list");
+				
+				for(var i = 0; i < arr.length; i++) {
+					if(arr[i] != "") {
+						var s = arr[i];
+
+						var li = document.createElement("li");
+						li.appendChild(document.createTextNode(s));
+						loadingList.appendChild(li);
+
+						if(i == 0) {
+							s = "/"+s;
+						} else if(i < arr.length-1) {
+							s += ",";
+						}
+						
+						document.getElementById("search-bar").action += s;
+					}
 				}
 				document.getElementById("home-loading").style.display = "block";
 				document.getElementById("home-content").style.display = "none";

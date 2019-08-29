@@ -18,7 +18,12 @@ form #search-field{
 
 #home-loading{
     display: none;
-} 
+}
+
+.match-small{
+	float: left;
+	border: 1px solid #000;
+}
 
 /*below not working*/
 /*

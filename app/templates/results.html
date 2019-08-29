@@ -1,18 +1,44 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
 
-    <head>
-        <meta charset="utf-8">
-        <title>Search Results</title>
-    </head>
+{% extends "banner_template.html" %}
+{% block content %}
+	<div id="ranks-top-bar">
+		<h3>Search Results</h3>
+		
+		<ul>
+			{% for summoner in results.summoners %}
+				<li>
+					<p>{{ summoner }}</p>
+					<ul>
+						{% for rank in results.summoners[summoner].ranks %}
+						<li>
+							<!-- only other stuff could be veteran/inactive/freshblood/hotstreak -->
+							<p>{{ rank.queueType }}: {{ rank.tier }} {{ rank.rank }} {{ rank.leaguePoints }}LP {{ rank.wins }}-{{ rank.losses }}</p>
+						</li>
+						{% endfor %}
+						{% for list in results.summoners[summoner].matchlist.matches %}
+						<li>
+							<p>{{ list }}</p>
+						</li>
+						{% endfor %}
+					</ul>
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
 
-    <body>
-        {% extends "banner_template.html" %}
-        {% block content %}
-
-        <p>"{{ result }}"</p>
-
-        {% endblock %}
-    </body>
-
-</html>
+	<div id="matches-list">
+	{% for match in results.matches %}
+		<div class="match-small">
+			{{ match.match.gameId }}
+			{% with result_summary = match.result_summary() %}
+				<p class="match-small-top">
+					{{ result_summary.queue }} {{ result_summary.result }} in {{result_summary.length_str}}
+				</p>
+				<p class="match-small-top">
+					{{ result_summary.get_timestamp_str() }} ago
+				</p>
+			{% endwith %}
+		</div>
+	{% endfor %}
+	</div>
+{% endblock %}

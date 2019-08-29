@@ -3,6 +3,7 @@ from functools import wraps
 from app.riot_requester import RiotRequester
 from app.ddragon_requester import request as ddragon_request
 from app.decarators import OneOfAKeyAtATime
+from app.response_utils import MatchUtil
 
 TRACE = False
 LOG = True
@@ -35,6 +36,28 @@ class UpdateRateLimitsTimestamps:
 			return val
 		return wrapper_function
 
+def insert_descending(element, arr:list):
+	if len(arr) == 0:
+		arr.append(element)
+	else:
+		start, end = -1, len(arr)
+		mid = (start+end)//2
+		while end-start > 1:
+			mid_elem = arr[mid]
+			if mid_elem > element:
+				start = mid
+			elif mid_elem < element:
+				end = mid
+			else:
+				return # no duplicates
+			mid = (start+end)//2
+
+		if mid==-1 or end-start==1 and element<arr[mid]:
+			arr.insert(mid+1, element)
+		else:
+			arr.insert(mid, element)
+			
+
 @OneOfAKeyAtATime(key='Requester')
 @UpdateRateLimitsTimestamps()
 def safe_request(region:str, req_type:str, **req_params_kargs) -> dict:
@@ -42,28 +65,32 @@ def safe_request(region:str, req_type:str, **req_params_kargs) -> dict:
 
 @OneOfAKeyAtATime(key='Requester')
 @UpdateRateLimitsTimestamps()
-def get_summoners_rundown(region:str, *summoners):
-	if len(summoners) == 1 and type(summoners[0]) == list:
-		summoners = summoners[0]
+def get_summoners_rundown(region:str, *summoner_names):
+	if len(summoner_names) == 1 and type(summoner_names[0]) == list:
+		summoner_names = summoner_names[0]
+
 	request = REQUESTERS[region.upper()]._request
 	
-	responses = {summoner:{} for summoner in summoners}
-	responses['matches'] = {}
-	match_ids = set()
+	
+	summoners = {name:{} for name in summoner_names}
+	match_ids = []
 	for summoner in summoners:
 		summoner_response = request("summoner_info", summoner_name=summoner)
 
 		summoner_id_kargs = {'encrypted_summoner_id': summoner_response['id']}
-		responses[summoner]['league'] = request("league_info", **summoner_id_kargs)
-		responses[summoner]['champion_mastery'] = request("champion_mastery", **summoner_id_kargs)
+		summoners[summoner]['ranks'] = request("league_info", **summoner_id_kargs)
+		summoners[summoner]['champion_mastery'] = request("champion_mastery", **summoner_id_kargs)
 
 		account_id_kargs = {'encrypted_account_id': summoner_response['accountId']}
 		this_matchlist_response = request("matchlist", **account_id_kargs, beginIndex=0, endIndex=10)
-		responses[summoner]['matchlist'] = this_matchlist_response
+		summoners[summoner]['matchlist'] = this_matchlist_response
 		for m in this_matchlist_response['matches']:
-			match_ids.add(m['gameId'])
+			insert_descending(m['gameId'], match_ids)
+	
+	for i in range(len(match_ids)-1):
+		assert match_ids[i] > match_ids[i+1], f"Match IDs not descending at i = {i}"
+	
+	matches = [MatchUtil(request("match", match_id=match_id), summoner_names) for match_id in match_ids]
+	REQUESTERS['NA'].log(matches[0].match)
 
-	for match_id in match_ids:
-		responses['matches'][match_id] = request("match", match_id=match_id)
-
-	return responses
+	return {"summoners":summoners, "matches":matches}
