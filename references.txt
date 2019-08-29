@@ -19,6 +19,7 @@ HTML
 https://www.youtube.com/watch?v=pQN-pnXPaVg
 https://stackoverflow.com/questions/14525029/display-a-loading-message-while-a-time-consuming-function-is-executed-in-flask
 https://www.w3schools.com/howto/howto_js_tab_header.asp
+http://faviconit.com/en
 
 CSS
 https://www.youtube.com/watch?v=yfoY53QXEnI
