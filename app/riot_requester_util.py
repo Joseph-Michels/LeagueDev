@@ -9,11 +9,6 @@ TRACE = False
 LOG = True
 REGIONS = frozenset(['NA', 'EUW', 'KR'])
 
-CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in ddragon_request("champions")["data"].items()}
-
-def get_champion(id:int) -> str:
-	return CHAMPION_KEYS[id]
-
 REQUESTERS = {region:RiotRequester(region, TRACE, LOG) for region in REGIONS}
 
 class UpdateRateLimitsTimestamps:
@@ -63,6 +58,7 @@ def insert_descending(element, arr:list):
 def safe_request(region:str, req_type:str, **req_params_kargs) -> dict:
 	return REQUESTERS[region.upper()]._request(req_type, **req_params_kargs)
 
+
 @OneOfAKeyAtATime(key='Requester')
 @UpdateRateLimitsTimestamps()
 def get_summoners_rundown(region:str, *summoner_names):
@@ -91,6 +87,5 @@ def get_summoners_rundown(region:str, *summoner_names):
 		assert match_ids[i] > match_ids[i+1], f"Match IDs not descending at i = {i}"
 	
 	matches = [MatchUtil(request("match", match_id=match_id), summoner_names) for match_id in match_ids]
-	REQUESTERS['NA'].log(matches[0].match)
 
 	return {"summoners":summoners, "matches":matches}

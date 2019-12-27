@@ -29,15 +29,21 @@
 	<div id="matches-list">
 	{% for match in results.matches %}
 		<div class="match-small">
-			{{ match.match.gameId }}
-			{% with result_summary = match.result_summary() %}
-				<p class="match-small-top">
-					{{ result_summary.queue }} {{ result_summary.result }} in {{result_summary.length_str}}
-				</p>
-				<p class="match-small-top">
-					{{ result_summary.get_timestamp_str() }} ago
-				</p>
-			{% endwith %}
+			<a href={{ match.link }}>link</a>
+			{{ match.gameId }}
+			<p class="match-small-top">
+				{{ match.queue }} {{ match.result }} in {{ match.duration_str }}
+			</p>
+			<p class="match-small-top">
+				{{ match.get_timestamp_str() }} ago
+			</p>
+			<ul class="match-small-champ-list">
+				{% for participant in match.participants %}
+					<li class="match-small-champ">
+						{{ participant }}
+					</li>
+				{% endfor %}
+			</ul>
 		</div>
 	{% endfor %}
 	</div>

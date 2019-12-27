@@ -11,3 +11,8 @@ DDRAGON_DICT = {
 
 def request(req_type:str, **req_params_kargs):
 	return requests.get(f"{DDRAGON_URL}{DDRAGON_DICT[req_type].build(**req_params_kargs)}").json()
+
+CHAMPION_KEYS = {int(champ_dict['key']):champ for champ,champ_dict in request("champions")["data"].items()}
+
+def get_champion(id:int) -> str:
+	return CHAMPION_KEYS[id]
