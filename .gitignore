@@ -1,12 +1,4 @@
-*.pyc
-*.pyo
-lib
-downloads
+Library
+Logs
 .vs
 .vscode
-/credentials
-/__pycache__
-/app/__pycache__
-/references
-/logs
-config.js

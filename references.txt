@@ -1,2 +1,3 @@
 https://stackoverflow.com/questions/27108264/c-sharp-how-to-properly-make-a-http-web-get-request
 https://stackoverflow.com/questions/39098046/how-to-work-with-json-object-in-c-sharp
+https://stackoverflow.com/questions/6620165/how-can-i-parse-json-with-c
