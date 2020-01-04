@@ -9,3 +9,4 @@ downloads
 /app/__pycache__
 /references
 /logs
+config.js
