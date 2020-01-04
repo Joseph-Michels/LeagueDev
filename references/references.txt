@@ -1,0 +1,34 @@
+cd /mnt/c/Users/JosephM/Coding/LeagueDev
+
+HOSTING
+github right now, otherwise check out weebly wix squarespace
+python3 -m http.server
+server: https://makeawebsitehub.com/free-node-js-hosting/
+https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/prog_guide/javascript.html
+
+JS
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
+https://github.com/Tino-FRC-2473/FRCSPN-Legacy/blob/CodeBase/TBA/modified-api-thebluealliance.js
+https://www.w3schools.com/js/js_ajax_http.asp
+https://levelup.gitconnected.com/rate-limiting-a0783293026a
+
+HTML
+https://www.youtube.com/watch?v=pQN-pnXPaVg
+https://stackoverflow.com/questions/14525029/display-a-loading-message-while-a-time-consuming-function-is-executed-in-flask
+https://www.w3schools.com/howto/howto_js_tab_header.asp
+http://faviconit.com/en
+
+CSS
+https://www.youtube.com/watch?v=yfoY53QXEnI
+
+FIREBASE
+https://console.firebase.google.com/project/leaguedev-57c5d/database/leaguedev-57c5d/data
+
+GITHUB
+https://github.com/TsImpLeT/LeagueDev
+
+RIOT API
+https://www.epochconverter.com
+https://developer.riotgames.com/api-methods/
+https://developer.riotgames.com/rate-limiting.html
+https://developer.riotgames.com/static-data.html
