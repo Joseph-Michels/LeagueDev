@@ -1,4 +1,10 @@
-Library
-Logs
-.vs
-.vscode
+/Library
+/Logs
+/.vs
+/.vscode
+UnityLockfile
+
+*.meta
+*.cache
+/obj/Debug
+*.csproj
