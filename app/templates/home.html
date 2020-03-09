@@ -12,7 +12,7 @@
 			<input type="submit" action="/home" value="Search" onclick="loading();">
 		</form>
 	</div>
-	
+
 	<script>
 		document.getElementById("search-bar").addEventListener("submit", e => {
 			if(document.getElementById("search-field").value == "") {
@@ -24,9 +24,10 @@
 		function loading(){
 			var input = document.getElementById("search-field").value;
 			if(input != "") {
-				var arr = input.split("\n");input = input.replace(/\n/g, ",");
+				var arr = input.split("\n");//input = input.replace(/\n/g, ",");
+				console.log(arr);
 				var loadingList = document.getElementById("loading-list");
-				
+
 				for(var i = 0; i < arr.length; i++) {
 					if(arr[i] != "") {
 						var s = arr[i];
@@ -37,17 +38,18 @@
 
 						if(i == 0) {
 							s = "/"+s;
-						} else if(i < arr.length-1) {
-							s += ",";
+						} else {
+							s = ","+s;
 						}
-						
+
 						document.getElementById("search-bar").action += s;
+						console.log(document.getElementById("search-bar").action);
 					}
 				}
 				document.getElementById("home-loading").style.display = "block";
 				document.getElementById("home-content").style.display = "none";
 			}
         }
-		
+
 	</script>
 {% endblock %}

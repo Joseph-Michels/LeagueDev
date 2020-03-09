@@ -33,7 +33,7 @@ class MatchUtil:
 		team_dict = MatchUtil.team_dict(self.side, match)
 
 		self.result = MatchUtil.win_str(team_dict['win'])
-		
+
 		partic_dict = MatchUtil.participants_dict(self.side, match)
 		print(f"  partic_dict keys: {partic_dict.keys()}")
 
@@ -42,7 +42,7 @@ class MatchUtil:
 
 	def get_timestamp_str(self):
 		seconds = int(get_time()) - self.timestamp//1000
-	
+
 		n = seconds // 31536000
 		if n >= 1:
 			return f"{n} year" + ('s' if n > 1 else '')
@@ -78,7 +78,7 @@ class MatchUtil:
 		for participant_id_dict in match['participantIdentities']:
 			if MatchUtil.summoners_match(participant_id_dict['player']['summonerName'], summoner):
 				return participant_id_dict['participantId']
-	
+
 	# 100 blue, 200 red
 	@staticmethod
 	def get_side(summoner_or_partic_id, match:{}):
@@ -119,13 +119,14 @@ class MatchUtil:
 		'DUO_CARRY': 'BOT',
 		'DUO_SUPPORT': 'SUP',
 		'SOLO': 'BOT', # cheesey solution for BOT/SOLO
-		'TOP': 'TOP'
+		'TOP': 'TOP',
+		'DUO': 'BOT'
 	}
 	@staticmethod
 	def get_raw_role(partic:{}):
 		lane = partic['timeline']['lane']
 		return MatchUtil._ROLE_DICT[lane if lane in MatchUtil._ROLE_DICT else partic['timeline']['role']]
-	
+
 	# past_tense: "Won"/"Lost"
 	# not past_tense: "Win"/"Loss"
 	@staticmethod

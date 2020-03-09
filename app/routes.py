@@ -20,7 +20,7 @@ def home(req=""):
 	else:
 		try:
 			arr = req.split(',')
-			print(arr)
+			print("<",arr)
 			req_util_dict[req] = req_util.get_summoners_rundown('NA', *arr)
 			return redirect(f"/results/{req}")
 		except requests.exceptions.RequestException as e:
