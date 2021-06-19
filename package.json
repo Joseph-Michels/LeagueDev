@@ -1,0 +1,22 @@
+{
+  "name": "leaguedev",
+  "version": "0.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.7",
+    "request": "^2.88.2"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joseph-Michels/LeagueDev.git"
+  },
+  "author": "Joseph Michels",
+  "license": "ISC",
+  "homepage": "https://joseph-michels.github.io/LeagueDev/"
+}

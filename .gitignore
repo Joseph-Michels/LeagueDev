@@ -1,4 +1,4 @@
 .vs
 .vscode
 /credentials
-/logs
+/node_modules
