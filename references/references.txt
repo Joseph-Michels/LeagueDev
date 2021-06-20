@@ -1,0 +1,8 @@
+RIOT
+https://developer.riotgames.com/apis
+
+HTTPS
+https://nodejs.org/api/http.html
+
+GOOGLE CLOUD
+https://cloud.google.com/nodejs/getting-started
