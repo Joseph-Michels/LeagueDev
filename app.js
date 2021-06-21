@@ -1,5 +1,6 @@
 // node_modules imports
 const express = require('express');
+const ejs = require('ejs');
 
 // other file imports
 const requester_module = require("./code/requester");
@@ -15,6 +16,52 @@ const PORT = 6500;
 const requester = new requester_module.Requester();
 
 
+// tests
+let objects = {
+    test: "test value",
+    test_array: [
+        "test1", "test2", "test3"
+    ],
+    live_games: [
+        {
+            start: "23:45",
+            mode1: "Ranked",
+            mode2: "S/D",
+            names: ["TsimpleT", "Tzuyu Fanboy"]
+        },
+        {
+            start: "34:56",
+            mode1: "Normal",
+            mode2: "Draft",
+            names: ["SpikyBuffalo", "vFirePat"]
+        },
+        {
+            start: "23:45",
+            mode1: "Ranked",
+            mode2: "S/D",
+            names: ["TsimpleT", "Tzuyu Fanboy"]
+        },
+        {
+            start: "34:56",
+            mode1: "Normal",
+            mode2: "Draft",
+            names: ["SpikyBuffalo", "vFirePat"]
+        },
+        {
+            start: "23:45",
+            mode1: "Ranked",
+            mode2: "S/D",
+            names: ["TsimpleT", "Tzuyu Fanboy"]
+        },
+        {
+            start: "34:56",
+            mode1: "Normal",
+            mode2: "Draft",
+            names: ["SpikyBuffalo", "vFirePat"]
+        }
+    ]
+};
+
 
 
 app.listen(PORT, (err) => {
@@ -27,11 +74,13 @@ app.listen(PORT, (err) => {
 });
 
 app.get("/", (req, res) => {
-    let objects = {
-        test: requester.getStatus(),
-        test_array: [
-            "test1", "test2", "test3"
-        ]
-    };
-    res.render('pages/index', objects);
+    console.log("top function");
+    requester.getSummoner('TsimpleT', true).then(async (value) => {
+        console.log("objects");
+        objects.async_test = value.name;
+        console.log(objects)
+        const html = await ejs.renderFile('views/pages/index.ejs', objects, {async: true});
+        res.send(html);
+        // res.render('pages/index', objects);
+    });
 });

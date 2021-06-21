@@ -6,3 +6,13 @@ https://nodejs.org/api/http.html
 
 GOOGLE CLOUD
 https://cloud.google.com/nodejs/getting-started
+
+HEROKU
+https://devcenter.heroku.com/articles/getting-started-with-nodejs
+https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
+
+EJS
+https://ejs.co/#docs
+
+STACKOVERFLOW
+https://stackoverflow.com/questions/60203249/ejs-async-true-with-node-express
