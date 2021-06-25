@@ -12,16 +12,6 @@ class Requester {
                 'X-Riot-Token': require('./credentials.js')['riot-key']
             }
         };
-
-        fs.readFile('./credentials/riot_key.txt', "utf8", (err, data) => {
-            if(err) {
-                console.log("/credentials/riot_key.js NOT FOUND");
-                throw err;
-            } else {
-                console.log("request header set");
-                this.OPTIONS.headers['X-Riot-Token'] = data;
-            }
-        });
     }
 
     getSummoner(name, verbose=false) {
