@@ -3,7 +3,7 @@ const express = require('express');
 const ejs = require('ejs');
 
 // other file imports
-const requester_module = require("./code/requester");
+const Requester = require("./code/requester").Requester;
 
 
 // node_modules initialization
@@ -13,7 +13,7 @@ app.set('view engine', 'ejs');
 const PORT = 6500;
 
 // other files initialization
-const requester = new requester_module.Requester();
+const requester = new Requester(false);
 
 
 // tests
