@@ -8,6 +8,7 @@ GOOGLE CLOUD
 https://cloud.google.com/nodejs/getting-started
 
 HEROKU
+git push heroku development:main
 https://devcenter.heroku.com/articles/getting-started-with-nodejs
 https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
 

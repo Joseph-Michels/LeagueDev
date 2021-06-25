@@ -11,11 +11,18 @@
     "start": "node app.js",
     "test": "nodemon app.js"
   },
+  "keywords": [
+    "node",
+    "heroku"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Joseph-Michels/LeagueDev.git"
   },
   "author": "Joseph Michels",
   "license": "ISC",
-  "homepage": "https://joseph-michels.github.io/LeagueDev/"
+  "homepage": "https://joseph-michels.github.io/LeagueDev/",
+  "engines": {
+    "node": "14.17.0"
+  }
 }
