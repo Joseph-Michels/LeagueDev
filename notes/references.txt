@@ -4,13 +4,14 @@ https://developer.riotgames.com/apis
 HTTPS
 https://nodejs.org/api/http.html
 
-GOOGLE CLOUD
-https://cloud.google.com/nodejs/getting-started
-
-HEROKU
+HEROKU COMMANDS / COMMON
 git push heroku development:main
 heroku local web
+heroku logs --tail
 https://league-dev-jm.herokuapp.com/
+https://dashboard.heroku.com/apps/league-dev-jm/settings
+
+HERKOU REFERENCES
 https://devcenter.heroku.com/articles/getting-started-with-nodejs
 https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
 

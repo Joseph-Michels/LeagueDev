@@ -10,10 +10,10 @@ const Requester = require("./code/requester").Requester;
 const app = express();
 app.set('view engine', 'ejs');
 
-const PORT = process.env.PORT || 6500;
+const PORT = process.env.PORT || 3000;
 
 // other files initialization
-const requester = new Requester(false);
+const requester = new Requester(true);
 
 
 // tests
