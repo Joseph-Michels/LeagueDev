@@ -15,7 +15,7 @@ class Requester {
     }
 
     getSummoner(name, verbose=false) {
-        if(connect) {
+        if(this.CONNECT) {
             return this.getUrl(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}`, verbose);
         } else {
             return new Promise((resolve, reject) => {
