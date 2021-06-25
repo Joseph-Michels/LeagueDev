@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- await include('../partials/head.ejs', {live_games: live_games}) %>
+</head>
+
+<body class="" style="background-color: #C0C0C0;">
+  <header>
+    <%- await include('../partials/header'); %>
+  </header>
+
+  <main>
+    <%- await include('../partials/live-games'); %>
+    <div class="jumbotron">
+      <h1>This is great</h1>
+      <p>Welcome to templating using EJS</p>
+      <p><%= test %></p>
+
+      <% test_array.forEach(test => { %>
+        <li><%= test %></li>
+      <% }); %>
+
+      <p><%= async_test %></p>
+    </div>
+  </main>
+
+  <footer>
+    <%- await include('../partials/footer'); %>
+  </footer>
+</body>
+
+</html>

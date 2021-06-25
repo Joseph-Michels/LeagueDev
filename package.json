@@ -1,0 +1,28 @@
+{
+  "name": "leaguedev",
+  "version": "0.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.1"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "node",
+    "heroku"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joseph-Michels/LeagueDev.git"
+  },
+  "author": "Joseph Michels",
+  "license": "ISC",
+  "homepage": "https://joseph-michels.github.io/LeagueDev/",
+  "engines": {
+    "node": "14.17.0"
+  }
+}

@@ -1,0 +1,18 @@
+<ul class="row px-4">
+    <% live_games.forEach(game => { %>
+        <div class="col-sm-2">
+            <div class="row mr-1 mt-1">
+                <div class="col-sm-4 border">
+                    <div class="row"><b><%= game.start %></b></div>
+                    <div class="row"><b><%= game.mode1 %></b></div>
+                    <div class="row"><b><%= game.mode2 %></b></div>
+                </div>
+                <div class="col border">
+                    <% game.names.forEach(name => { %>
+                        <div class="row"><%= name %></div>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+    <% }); %>
+</ul>
