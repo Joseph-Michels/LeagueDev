@@ -9,6 +9,7 @@ https://cloud.google.com/nodejs/getting-started
 
 HEROKU
 git push heroku development:main
+heroku local web
 https://devcenter.heroku.com/articles/getting-started-with-nodejs
 https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
 
