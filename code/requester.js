@@ -4,14 +4,26 @@ class Requester {
     constructor(connect) {
         this.CONNECT = connect;
 
-        this.OPTIONS = {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
-                'X-Riot-Token': require('./credentials.js')['riot-key']
-            }
-        };
+        const envRiotKey = process.env['RIOT-KEY'];
+        if(envRiotKey) {
+            this.OPTIONS = {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
+                    'X-Riot-Token': envRiotKey
+                }
+            };
+        } else {
+            this.OPTIONS = {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
+                    'X-Riot-Token': require('./credentials.js')['RIOT-KEY']
+                }
+            };
+        }
     }
 
     getSummoner(name, verbose=false) {
