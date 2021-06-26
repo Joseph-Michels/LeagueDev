@@ -13,15 +13,16 @@
   <main>
     <%- await include('../partials/live-games'); %>
     <div class="jumbotron">
-      <h1>This is great</h1>
-      <p>Welcome to templating using EJS</p>
+      <!-- <h1>This is great</h1> -->
+      <!-- <p>Welcome to templating using EJS</p> -->
       <p><%= test %></p>
 
       <% test_array.forEach(test => { %>
         <li><%= test %></li>
       <% }); %>
 
-      <p><%= async_test %></p>
+      <p>SUMMONER NAME: <%= summonerName %></p>
+      <p>SUMMONER LEVEL: <%= summonerLevel %></p>
     </div>
   </main>
 

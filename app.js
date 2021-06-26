@@ -3,8 +3,8 @@ const express = require('express');
 const ejs = require('ejs');
 
 // other file imports
-const Requester = require("./code/requester").Requester;
-
+const Requester = require('./code/requester');
+const Database = require('./code/database');
 
 // node_modules initialization
 const app = express();
@@ -14,39 +14,16 @@ const PORT = process.env.PORT || 3000;
 
 // other files initialization
 const requester = new Requester(true);
+const database = new Database();
 
 
 // tests
-let objects = {
-    test: "test value",
+const baseObjects = {
+    test: "From Firestore Database",
     test_array: [
-        "test1", "test2", "test3"
+        // "test1", "test2", "test3"
     ],
     live_games: [
-        {
-            start: "23:45",
-            mode1: "Ranked",
-            mode2: "S/D",
-            names: ["TsimpleT", "Tzuyu Fanboy"]
-        },
-        {
-            start: "34:56",
-            mode1: "Normal",
-            mode2: "Draft",
-            names: ["SpikyBuffalo", "vFirePat"]
-        },
-        {
-            start: "23:45",
-            mode1: "Ranked",
-            mode2: "S/D",
-            names: ["TsimpleT", "Tzuyu Fanboy"]
-        },
-        {
-            start: "34:56",
-            mode1: "Normal",
-            mode2: "Draft",
-            names: ["SpikyBuffalo", "vFirePat"]
-        },
         {
             start: "23:45",
             mode1: "Ranked",
@@ -73,14 +50,26 @@ app.listen(PORT, (err) => {
     }
 });
 
-app.get("/", (req, res) => {
-    console.log("top function");
-    requester.getSummoner('TsimpleT', true).then(async (value) => {
-        console.log("objects");
-        objects.async_test = value.name;
-        console.log(objects)
-        const html = await ejs.renderFile('views/pages/index.ejs', objects, {async: true});
-        res.send(html);
-        // res.render('pages/index', objects);
-    });
+app.get("/", async (req, res) => {
+    let objects = JSON.parse(JSON.stringify(baseObjects));
+
+    objects.summonerName = (await database.getSummonerName()).testkey;
+    objects.summonerLevel = (await requester.getSummoner(objects.summonerName, true)).summonerLevel;
+
+    // console.log(objects);
+
+    res.send(await ejs.renderFile('views/pages/index.ejs', objects, {async: true}));
+});
+
+app.get("/:username", async (req, res) => {
+    let objects = {
+        summonerName: req.params.username,
+        summonerLevel: (await requester.getSummoner(req.params.username, true)).summonerLevel,
+        live_games: [],
+        test: '',
+        test_array: []
+    }
+    // console.log(objects);
+
+    res.send(await ejs.renderFile('views/pages/index.ejs', objects, {async: true}));
 });

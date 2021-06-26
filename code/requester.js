@@ -18,7 +18,7 @@ class Requester {
         }
     }
 
-    getSummoner(name, verbose=false) {
+    async getSummoner(name, verbose=false) {
         if(this.CONNECT) {
             return this.getUrl(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}`, verbose);
         } else {
@@ -56,6 +56,4 @@ class Requester {
     }
 };
 
-module.exports = {
-    Requester: Requester
-}
+module.exports = Requester;
