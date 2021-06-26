@@ -54,7 +54,7 @@ app.get("/", async (req, res) => {
     let objects = JSON.parse(JSON.stringify(baseObjects));
 
     objects.summonerName = (await database.getSummonerName()).testkey;
-    objects.summonerLevel = (await requester.getSummoner(objects.summonerName, true)).summonerLevel;
+    objects.summonerLevel = (await requester.getSummoner(objects.summonerName)).summonerLevel;
 
     // console.log(objects);
 
@@ -64,7 +64,7 @@ app.get("/", async (req, res) => {
 app.get("/:username", async (req, res) => {
     let objects = {
         summonerName: req.params.username,
-        summonerLevel: (await requester.getSummoner(req.params.username, true)).summonerLevel,
+        summonerLevel: (await requester.getSummoner(req.params.username)).summonerLevel,
         live_games: [],
         test: '',
         test_array: []

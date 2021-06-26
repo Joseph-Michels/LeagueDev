@@ -5,7 +5,7 @@ class Database {
         let serviceAccount;
 
         try {
-            serviceAccount = require('./credentials.js').FIRESTORE;   
+            serviceAccount = require('./credentials.js').FIRESTORE;
         } catch(e) {
             serviceAccount = {
                 type:                           process.env['FS_type'],
@@ -19,6 +19,7 @@ class Database {
                 auth_provider_x509_cert_url:    process.env['FS_auth_provider_x509_cert_url'],
                 client_x509_cert_url:           process.env['FS_client_x509_cert_url']
             };
+            console.log(serviceAccount);
         }
         
         admin.initializeApp({
