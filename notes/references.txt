@@ -1,22 +1,18 @@
-RIOT
-https://developer.riotgames.com/apis
+HEROKU
+    COMMANDS    git push heroku development:main
+                heroku local web
+                heroku logs --tail
+    LINKS       https://league-dev-jm.herokuapp.com/
+                https://dashboard.heroku.com/apps/league-dev-jm/settings
+    EARLY REFS  https://devcenter.heroku.com/articles/getting-started-with-nodejs
+                https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
 
-HTTPS
-https://nodejs.org/api/http.html
+RIOT            https://developer.riotgames.com/apis
 
-HEROKU COMMANDS / COMMON
-git push heroku development:main
-heroku local web
-heroku logs --tail
-https://league-dev-jm.herokuapp.com/
-https://dashboard.heroku.com/apps/league-dev-jm/settings
+FIRESTORE       https://firebase.google.com/docs/firestore/quickstart#node.js
 
-HERKOU REFERENCES
-https://devcenter.heroku.com/articles/getting-started-with-nodejs
-https://devcenter.heroku.com/articles/preparing-a-codebase-for-heroku-deployment
-
-EJS
-https://ejs.co/#docs
-
-STACKOVERFLOW
-https://stackoverflow.com/questions/60203249/ejs-async-true-with-node-express
+NODEJS
+    HTTPS       https://nodejs.org/api/http.html
+    EJS         https://ejs.co/#docs
+                https://stackoverflow.com/questions/60203249/ejs-async-true-with-node-express
+    ASYNC       https://dev.to/gafi/7-reasons-to-always-use-async-await-over-plain-promises-tutorial-4ej9
