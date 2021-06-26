@@ -2,10 +2,11 @@ const admin = require('firebase-admin');
 
 class Database {
     constructor() {
-        const envSet = (process.env['FS_type'] === true);
         let serviceAccount;
 
-        if(envSet) {
+        try {
+            serviceAccount = require('./credentials.js').FIRESTORE;   
+        } catch(e) {
             serviceAccount = {
                 type:                           process.env['FS_type'],
                 project_id:                     process.env['FS_project_id'],
@@ -18,8 +19,6 @@ class Database {
                 auth_provider_x509_cert_url:    process.env['FS_auth_provider_x509_cert_url'],
                 client_x509_cert_url:           process.env['FS_client_x509_cert_url']
             };
-        } else {
-            serviceAccount = require('./credentials.js').FIRESTORE;
         }
         
         admin.initializeApp({
