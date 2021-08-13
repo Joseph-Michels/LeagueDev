@@ -2,33 +2,45 @@
 <html lang="en">
 
 <head>
-  <%- await include('../partials/head.ejs', {live_games: live_games}) %>
+    <%- await include('../partials/head.ejs') %>
 </head>
 
 <body class="" style="background-color: #C0C0C0;">
-  <header>
-    <%- await include('../partials/header'); %>
-  </header>
+    <header>
+        <%- await include('../partials/header') %>
+    </header>
+    <main>
+        <%- await include('../partials/live-games', {liveGames: liveGames}) %>
 
-  <main>
-    <%- await include('../partials/live-games'); %>
-    <div class="jumbotron">
-      <!-- <h1>This is great</h1> -->
-      <!-- <p>Welcome to templating using EJS</p> -->
-      <p><%= test %></p>
+        <div class="jumbotron">
+            <h3>Groups</h3>
+            <% groupNames.forEach((name, index) => { %>
+                <a href=<%= '/group/'+groupIds[index] %> class='btn btn-secondary'">
+                    <%= name %>
+                </a>
+            <% }); %>
 
-      <% test_array.forEach(test => { %>
-        <li><%= test %></li>
-      <% }); %>
+            <h5 class='pt-5'>tests below</h5>
+            <p><%= test %></p>
+            <% test_array.forEach(test => { %>
+                <li><%= test %></li>
+            <% }); %>
+            
+            <p>SUMMONER NAME: <%= summonerName %></p>
+            <p>SUMMONER LEVEL: <%= summonerLevel %></p>
+            <img src=<%='http://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/'+iconId+'.png'%> width=100></img>
+        </div>
+    </main>
+    
+    <footer>
+        <%- await include('../partials/footer') %>
+    </footer>
 
-      <p>SUMMONER NAME: <%= summonerName %></p>
-      <p>SUMMONER LEVEL: <%= summonerLevel %></p>
-    </div>
-  </main>
+    <script>
+        function redirectGroup(groupId) {
 
-  <footer>
-    <%- await include('../partials/footer'); %>
-  </footer>
+        }
+    </script>
 </body>
 
 </html>
