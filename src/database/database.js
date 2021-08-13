@@ -1,19 +1,7 @@
 const Requester = require('./requester');
 const Firestore = require('./firestore');
 
-const DUMMY_SUMMONER = {
-    "id": "acu3F1E7p-t0JpIHbq2KXgpALV6TJW-FqEKGp3A2UHBuTwQ",
-    "accountId": "nmFO671RROMhZgcAmhGuIl13XuQE0uADeDGJ6dpFL1Ia9tc",
-    "puuid": "UyPV3Ji6PUh-Z4iiS4247S_P4eEjtbUbQcT6F3ZO45SQGGaLKeVDwC0I578Jpo7aMyBWohImxFhGnw",
-    "name": "TsimpleT",
-    "profileIconId": 3463,
-    "revisionDate": 1625730827000,
-    "summonerLevel": 346
-};
-
-const UNRANKED = {
-    "tier": "UNRANKED"
-}
+const { DUMMY_SUMMONER, DUMMY_RANKS, UNRANKED } = require('../utils/dummyResponseUtil');
 
 class Database {
     constructor(useDummyResponses=false, verbose=false) {
@@ -23,28 +11,6 @@ class Database {
         this.requester = new Requester();
         this.firestore = new Firestore();
     }
-
-    async getSummonerByName(name, verbose=false) {
-        if(this.USE_DUMMY_RESPONSES) {
-            return {
-                "id": "acu3F1E7p-t0JpIHbq2KXgpALV6TJW-FqEKGp3A2UHBuTwQ",
-                "accountId": "nmFO671RROMhZgcAmhGuIl13XuQE0uADeDGJ6dpFL1Ia9tc",
-                "puuid": "UyPV3Ji6PUh-Z4iiS4247S_P4eEjtbUbQcT6F3ZO45SQGGaLKeVDwC0I578Jpo7aMyBWohImxFhGnw",
-                "name": "TsimpleT",
-                "profileIconId": 3463,
-                "revisionDate": 1625730827000,
-                "summonerLevel": 346
-            };
-        }
-
-        // TODO check database
-        // 
-
-        // http request and cache it
-        let summoner = await this.requester.getSummonerByName(name, this.VERBOSE || verbose);
-        this.firestore.cacheSummoner(summoner);
-        return summoner;  
-    }  
 
     async getSummonerByName(name, verbose=false) {
         if(this.USE_DUMMY_RESPONSES) {
@@ -82,7 +48,7 @@ class Database {
 
     async getRanksById(summonerId, verbose=false) {
         if(this.USE_DUMMY_RESPONSES) {
-            // TODO return
+            return DUMMY_RANKS;
         }
 
         // check if cached in firestore
@@ -93,7 +59,6 @@ class Database {
 
         // http request and cache it
         let ranksRaw = await this.requester.getRanksById(summonerId, this.VERBOSE || verbose);
-        console.log(ranksRaw);
         ranks = { 'solo': UNRANKED, 'flex': UNRANKED };
         ranksRaw.forEach(rank => {
             if(rank.queueType === "RANKED_SOLO_5x5") {
