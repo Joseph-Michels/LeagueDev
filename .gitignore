@@ -1,4 +1,4 @@
 .vs
 .vscode
-/code/credentials.js
+/src/database/credentials.js
 /node_modules

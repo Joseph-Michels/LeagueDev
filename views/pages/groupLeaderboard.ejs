@@ -10,7 +10,7 @@
         <%- await include('../partials/header') %>
     </header>
     <main>
-        <%- await include('../partials/live-games', {liveGames: liveGames}) %>
+        <%- await include('../partials/liveGames', {liveGames: liveGames}) %>
         <div class="jumbotron">
 
             <table class='table'>
@@ -30,7 +30,11 @@
                                 <%= summoner.name %>
                             </td>
                             <td>
-                                <%= ranks[idx].solo.tier + ' ' + ranks[idx].solo.rank + ' - ' + ranks[idx].solo.leaguePoints + ' LP' %>
+                                <% if(ranks[idx].solo.tier === 'UNRANKED') { %>
+                                    UNRANKED
+                                <% } else { %>
+                                    <%= ranks[idx].solo.tier + ' ' + ranks[idx].solo.rank + ' - ' + ranks[idx].solo.leaguePoints + ' LP' %>
+                                <% } %>
                             </td>
                             <td>
                                 <%= ranks[idx].solo.wins %>

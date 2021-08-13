@@ -26,7 +26,6 @@ class Firestore {
                 auth_provider_x509_cert_url:    process.env['FS_auth_provider_x509_cert_url'],
                 client_x509_cert_url:           process.env['FS_client_x509_cert_url']
             };
-            console.log(serviceAccount);
         }
         
         admin.initializeApp({
@@ -35,10 +34,10 @@ class Firestore {
         this.db = admin.firestore();
     }
 
-    /*
-        ACCESS GROUP METHODS
-    */
-
+    /***************************************************************************
+     | GROUP                                                                   |
+     ***************************************************************************/
+    /* ACCESS */
     async getTestSummonerName() {
         return (await this.db.collection('test').doc('testdocument').get()).data();
     }
@@ -57,9 +56,10 @@ class Firestore {
         return (await this.db.collection('groups').doc(groupId).get()).data();
     }
 
-    /*
-        ACCESS METHODS
-    */
+    /***************************************************************************
+     | CACHE                                                                   |
+     ***************************************************************************/
+    /* ACCESS */
     async getSummonerById(id, verbose) {
         let summoner = (await this.db.collection('cachedSummoners').doc(id).get()).data();
         if(summoner) {
@@ -96,9 +96,7 @@ class Firestore {
         }
     }
 
-    /*
-        STORAGE METHODS
-    */
+    /* STORAGE */
     cacheSummoner(summoner, storeName) {
         let time = new Date();
         time.setTime(time.getTime() + 2*HR_TO_MS);
