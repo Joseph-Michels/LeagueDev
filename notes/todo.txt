@@ -1,2 +1,12 @@
-1.  RATE LIMITING IMPORTANT
-2.  MAKE WEBSITE VISUALLY APPEALLING
+CRITICAL UPDATES
+- rate limiting
+- code cleaning (express routers)
+
+TODO SOON
+- match v5 api
+- group live games implementation
+
+DISTANT FUTURE
+- login; edit/add groups
+- refresh buttons to override expiresAt cache
+- visual update
