@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include('../partials/head.ejs') %>
+</head>
+
+<body class="" style="background-color: #C0C0C0;">
+    <header>
+        <%- await include('../partials/header') %>
+    </header>
+    <main>
+        <%- await include('../partials/live-games', {liveGames: liveGames}) %>
+        <div class="jumbotron">
+
+            <table class='table'>
+                <thead>
+                    <tr>
+                        <th>Summoner</th>
+                        <th>Rank</th>
+                        <th>W</th>
+                        <th>L</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% summoners.forEach(summoner => { %>
+                        <tr>
+                            <td>
+                                <img src=<%='http://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/'+summoner.profileIconId+'.png'%> width=40></img>
+                                <%= summoner.name %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                    
+                </tbody>
+            </table>
+        </div>
+    </main>
+    
+    <footer>
+        <%- await include('../partials/footer') %>
+    </footer>
+</body>
+
+</html>
