@@ -24,6 +24,10 @@ class Requester {
         return this.getUrl(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}`, verbose);  
     }
 
+    async getRanksById(summonerId, verbose) {
+        return this.getUrl(`https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, verbose);  
+    }
+
     getUrl(url, verbose) {
         return new Promise((resolve, reject) => {
             https.get(url, this.OPTIONS, (res) => {

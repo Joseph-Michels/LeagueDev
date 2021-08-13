@@ -1,6 +1,8 @@
 const admin = require('firebase-admin');
 
 const HR_TO_MS = 60*60*1000;
+const MIN_TO_MS = 60*1000;
+
 const DATE_FROM = (timestamp) => {
     return new Date(1000*timestamp._seconds)
 };
@@ -60,17 +62,36 @@ class Firestore {
     */
     async getSummonerById(id, verbose) {
         let summoner = (await this.db.collection('cachedSummoners').doc(id).get()).data();
-        if(summoner && new Date() <= DATE_FROM(summoner.expiresAt)) {
-            return summoner;
+        if(summoner) {
+            let expiresAt = DATE_FROM(summoner.expiresAt);
+            if(new Date() < expiresAt) {
+                summoner.expiresAt = expiresAt;
+                return summoner;
+            }
         }
     }
 
     async getSummonerByName(name, verbose) {
-        let id = (await this.db.collection('cachedSummonerNames').doc(name).get()).data()?.name;
+        let id = (await this.db.collection('cachedSummonerNames').doc(name).get()).data()?.puuid;
         if(id) {
             let summoner = await this.getSummonerById(id, verbose);
-            if(summoner && new Date() <= DATE_FROM(summoner.expiresAt)) {
-                return summoner;
+            if(summoner) {
+                let expiresAt = DATE_FROM(summoner.expiresAt);
+                if(new Date() < expiresAt) {
+                    summoner.expiresAt = expiresAt;
+                    return summoner;
+                }
+            }
+        }
+    }
+
+    async getRanksById(summonerId, verbose) {
+        let ranks = (await this.db.collection('cachedRanks').doc(summonerId).get()).data();
+        if(ranks) {
+            let expiresAt = DATE_FROM(ranks.expiresAt);
+            if(new Date() <= expiresAt) {
+                ranks.expiresAt = expiresAt;
+                return ranks;
             }
         }
     }
@@ -78,15 +99,21 @@ class Firestore {
     /*
         STORAGE METHODS
     */
-    storeSummoner(summoner, storeName) {
-        console.log(summoner);
+    cacheSummoner(summoner, storeName) {
         let time = new Date();
         time.setTime(time.getTime() + 2*HR_TO_MS);
         summoner.expiresAt = time;
         this.db.collection('cachedSummoners').doc(summoner.puuid).set(summoner);
         if(storeName) {
-            this.db.collection('cachedSummonerNames').doc(summoner.name).set({name: summoner.puuid});
+            this.db.collection('cachedSummonerNames').doc(summoner.name).set({puuid: summoner.puuid, summonerId: summoner.id});
         }
+    }
+
+    cacheRanks(summonerId, ranks) {
+        let time = new Date();
+        time.setTime(time.getTime() + 30*MIN_TO_MS);
+        ranks.expiresAt = time;
+        this.db.collection('cachedRanks').doc(summonerId).set(ranks);
     }
 }
 

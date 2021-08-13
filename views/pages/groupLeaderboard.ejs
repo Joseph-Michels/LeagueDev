@@ -23,11 +23,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% summoners.forEach(summoner => { %>
+                    <% summoners.forEach((summoner, idx) => { %>
                         <tr>
                             <td>
                                 <img src=<%='http://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/'+summoner.profileIconId+'.png'%> width=40></img>
                                 <%= summoner.name %>
+                            </td>
+                            <td>
+                                <%= ranks[idx].solo.tier + ' ' + ranks[idx].solo.rank + ' - ' + ranks[idx].solo.leaguePoints + ' LP' %>
+                            </td>
+                            <td>
+                                <%= ranks[idx].solo.wins %>
+                            </td>
+                            <td>
+                                <%= ranks[idx].solo.losses %>
                             </td>
                         </tr>
                     <% }); %>
