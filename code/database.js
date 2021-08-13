@@ -11,6 +11,10 @@ const DUMMY_SUMMONER = {
     "summonerLevel": 346
 };
 
+const UNRANKED = {
+    "tier": "UNRANKED"
+}
+
 class Database {
     constructor(useDummyResponses=false, verbose=false) {
         this.USE_DUMMY_RESPONSES = useDummyResponses;
@@ -38,7 +42,7 @@ class Database {
 
         // http request and cache it
         let summoner = await this.requester.getSummonerByName(name, this.VERBOSE || verbose);
-        this.firestore.storeSummoner(summoner);
+        this.firestore.cacheSummoner(summoner);
         return summoner;  
     }  
 
@@ -55,7 +59,7 @@ class Database {
 
         // http request and cache it
         summoner = await this.requester.getSummonerByName(name, this.VERBOSE || verbose);
-        this.firestore.storeSummoner(summoner, true);
+        this.firestore.cacheSummoner(summoner, true);
         return summoner;  
     }
 
@@ -72,8 +76,36 @@ class Database {
 
         // http request and cache it
         summoner = await this.requester.getSummonerById(id, this.VERBOSE || verbose);
-        this.firestore.storeSummoner(summoner, false);
+        this.firestore.cacheSummoner(summoner, false);
         return summoner;  
+    }
+
+    async getRanksById(summonerId, verbose=false) {
+        if(this.USE_DUMMY_RESPONSES) {
+            // TODO return
+        }
+
+        // check if cached in firestore
+        let ranks = await this.firestore.getRanksById(summonerId, this.VERBOSE || verbose);
+        if(ranks) {
+            return ranks;
+        }
+
+        // http request and cache it
+        let ranksRaw = await this.requester.getRanksById(summonerId, this.VERBOSE || verbose);
+        console.log(ranksRaw);
+        ranks = { 'solo': UNRANKED, 'flex': UNRANKED };
+        ranksRaw.forEach(rank => {
+            if(rank.queueType === "RANKED_SOLO_5x5") {
+                ranks.solo = rank;
+            } else if(rank.queueType === "RANKED_FLEX_SR") {
+                ranks.flex = rank;
+            } else {
+                console.log(`UNKNOWN QUEUE TYPE: ${rank.queueType}`);
+            }
+        });
+        this.firestore.cacheRanks(summonerId, ranks);
+        return ranks;  
     }
 }
 

@@ -1,2 +1,3 @@
 Cache Duration
 - Summoner: 2 hours (includes name to id)
+- League Rank: 30 minutes
