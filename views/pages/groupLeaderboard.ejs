@@ -30,6 +30,7 @@
                                 <%= summoner.name %>
                             </td>
                             <td>
+                                <img src=<%='/img/rankedEmblems/' + ranks[idx].solo.tier + '.png'%> width=35></img>
                                 <% if(ranks[idx].solo.tier === 'UNRANKED') { %>
                                     UNRANKED
                                 <% } else { %>

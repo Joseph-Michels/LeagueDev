@@ -38,11 +38,11 @@ function ranksSortValue(r1, r2) {
     }
 }
 
-async function getLeaderboardRanksSummoners(group, database) {
+async function getLeaderboardRanksSummoners(database, group) {
     let arr = [];
     for(let i = 0; i < group.ids.length; i++) {
-        let summoner = await database.getSummonerById(group.ids[i]);
-        let thisRanks = await database.getRanksById(summoner.id);
+        let summoner = await database.getSummonerByPuuid(group.ids[i]);
+        let thisRanks = await database.getRanksBySummonerId(summoner.id);
         arr.push({summoner: summoner, ranks: thisRanks});
     }
     arr.sort((e1, e2) => {

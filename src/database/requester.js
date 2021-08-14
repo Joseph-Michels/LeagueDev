@@ -16,7 +16,7 @@ class Requester {
         }
     }
 
-    async getSummonerById(id, verbose) {
+    async getSummonerByPuuid(id, verbose) {
         return this.getUrl(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${id}`, verbose);  
     }
 
@@ -24,8 +24,12 @@ class Requester {
         return this.getUrl(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}`, verbose);  
     }
 
-    async getRanksById(summonerId, verbose) {
+    async getRanksBySummonerId(summonerId, verbose) {
         return this.getUrl(`https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`, verbose);  
+    }
+
+    async getLiveGameBySummonerId(summonerId, verbose) {
+        return this.getUrl(`https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${summonerId}`, verbose);  
     }
 
     getUrl(url, verbose) {

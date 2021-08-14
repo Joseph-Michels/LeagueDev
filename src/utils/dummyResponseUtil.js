@@ -41,10 +41,50 @@ const DUMMY_RANKS = {
     }
 };
 
+const DUMMY_LIVE_GAME = {
+    gameId: 4010571128,
+    mapId: 11,
+    gameMode: "CLASSIC",
+    gameType: "MATCHED_GAME",
+    gameQueueConfigId: 420,
+    participants: [
+        {
+            "teamId": 100,
+            "spell1Id": 12,
+            "spell2Id": 4,
+            "championId": 147,
+            "profileIconId": 4068,
+            "summonerName": "SpikyBuffalo",
+            "bot": false,
+            "summonerId": "g0H8zO8xkg1uENQRDJjB05t-F3cWnLcI4FtajwTRfjkHGx0",
+            "gameCustomizationObjects": [],
+            "perks": { // runes
+                "perkIds": [
+                    8229,
+                    8226,
+                    8210,
+                    8236,
+                    8304,
+                    8321,
+                    5007,
+                    5008,
+                    5003
+                ],
+                "perkStyle": 8200,
+                "perkSubStyle": 8300
+            }
+        }
+    ],
+    platformId: "NA1",
+    bannedChampions: [],
+    gameStartTime: 1628918588253,
+    gameLength: 1128
+};
+
 const UNRANKED = {
     "tier": "UNRANKED"
-}
+};
 
 module.exports = {
-    DUMMY_SUMMONER, DUMMY_RANKS, UNRANKED
+    DUMMY_SUMMONER, DUMMY_RANKS, DUMMY_LIVE_GAME, UNRANKED
 }

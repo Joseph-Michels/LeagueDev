@@ -2,23 +2,7 @@ const express = require('express');
 const ejs = require('ejs');
 
 const RankedUtil = require('../utils/rankedUtil');
-
-/*
-liveGames: [
-    // {
-    //     start: "23:45",
-    //     mode1: "Ranked",
-    //     mode2: "S/D",
-    //     names: ["TsimpleT", "Tzuyu Fanboy"]
-    // },
-    // {
-    //     start: "34:56",
-    //     mode1: "Normal",
-    //     mode2: "Draft",
-    //     names: ["SpikyBuffalo", "vFirePat"]
-    // }
-]
-*/
+const LiveGameUtil = require('../utils/liveGameUtil');
 
 class GroupRouter {
     constructor(database, verbose=false) {
@@ -32,10 +16,11 @@ class GroupRouter {
         
         this.router.get("/:groupId/leaderboard", async (req, res) => {
             let group = await database.firestore.getGroup(req.params.groupId);
-            let leaderboard = await RankedUtil.getLeaderboardRanksSummoners(group, database);
+            let leaderboard = await RankedUtil.getLeaderboardRanksSummoners(database, group);
+            let liveGames = await LiveGameUtil.getLiveGames(database, group);
         
             let objects = {
-                liveGames: [],
+                liveGames: liveGames,
                 ranks: leaderboard.ranks,
                 summoners: leaderboard.summoners
             };

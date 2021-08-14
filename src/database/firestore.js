@@ -59,9 +59,9 @@ class Firestore {
     /***************************************************************************
      | CACHE                                                                   |
      ***************************************************************************/
-    /* ACCESS */
-    async getSummonerById(id, verbose) {
-        let summoner = (await this.db.collection('cachedSummoners').doc(id).get()).data();
+    /* SUMMONER */
+    async getSummonerByPuuid(puuid, verbose=false) {
+        let summoner = (await this.db.collection('cachedSummoners').doc(puuid).get()).data();
         if(summoner) {
             let expiresAt = DATE_FROM(summoner.expiresAt);
             if(new Date() < expiresAt) {
@@ -71,10 +71,10 @@ class Firestore {
         }
     }
 
-    async getSummonerByName(name, verbose) {
+    async getSummonerByName(name, verbose=false) {
         let id = (await this.db.collection('cachedSummonerNames').doc(name).get()).data()?.puuid;
         if(id) {
-            let summoner = await this.getSummonerById(id, verbose);
+            let summoner = await this.getSummonerByPuuid(id);
             if(summoner) {
                 let expiresAt = DATE_FROM(summoner.expiresAt);
                 if(new Date() < expiresAt) {
@@ -85,18 +85,6 @@ class Firestore {
         }
     }
 
-    async getRanksById(summonerId, verbose) {
-        let ranks = (await this.db.collection('cachedRanks').doc(summonerId).get()).data();
-        if(ranks) {
-            let expiresAt = DATE_FROM(ranks.expiresAt);
-            if(new Date() <= expiresAt) {
-                ranks.expiresAt = expiresAt;
-                return ranks;
-            }
-        }
-    }
-
-    /* STORAGE */
     cacheSummoner(summoner, storeName) {
         let time = new Date();
         time.setTime(time.getTime() + 2*HR_TO_MS);
@@ -107,11 +95,50 @@ class Firestore {
         }
     }
 
+    /* RANKS */
+    async getRanksBySummonerId(summonerId, verbose=false) {
+        let ranks = (await this.db.collection('cachedRanks').doc(summonerId).get()).data();
+        if(ranks) {
+            let expiresAt = DATE_FROM(ranks.expiresAt);
+            if(new Date() <= expiresAt) {
+                ranks.expiresAt = expiresAt;
+                return ranks;
+            }
+        }
+    }
+
     cacheRanks(summonerId, ranks) {
         let time = new Date();
         time.setTime(time.getTime() + 30*MIN_TO_MS);
         ranks.expiresAt = time;
         this.db.collection('cachedRanks').doc(summonerId).set(ranks);
+    }
+
+    /* LIVE GAME */
+    async getLiveGameBySummonerId(summonerId, verbose=false) {
+        let gameIdObject = (await this.db.collection('cachedLiveGamesSummoners').doc(summonerId).get()).data();
+        if(gameIdObject) {
+            let expiresAt = DATE_FROM(gameIdObject.expiresAt);
+            if(new Date() <= expiresAt) {
+                let liveGame = (await this.db.collection('cachedLiveGames').doc(''+gameIdObject.gameId).get()).data();
+                if(liveGame) {
+                    liveGame.expiresAt = expiresAt;
+                    return liveGame;
+                }
+            }
+        }
+    }
+
+    cacheLiveGame(liveGame) { // expiresAt on summonerIds for checking, (TODO) on liveGames for cleaning it and all its summonerIds too
+        let time = new Date();
+        time.setTime(time.getTime() + 2*MIN_TO_MS);
+        liveGame.expiresAt = time;
+        this.db.collection('cachedLiveGames').doc(''+liveGame.gameId).set(liveGame);
+        liveGame.participants.forEach(participant => {
+            this.db.collection('cachedLiveGamesSummoners').doc(participant.summonerId).set(
+                {gameId: liveGame.gameId, expiresAt: time}
+            );
+        });
     }
 }
 
