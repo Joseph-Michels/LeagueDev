@@ -11,14 +11,7 @@
     </header>
     <main>
         <div class="jumbotron">
-            <h3>Groups</h3>
-            <% groupNames.forEach((name, index) => { %>
-                <a href=<%= '/group/'+groupIds[index] %> class='btn btn-secondary'">
-                    <%= name %>
-                </a>
-            <% }); %>
-
-            <h5 class='pt-5'>tests below</h5>
+            <h5 class='pt-5'>search tests below</h5>
             <p><%= test %></p>
             <% test_array.forEach(test => { %>
                 <li><%= test %></li>
@@ -33,12 +26,6 @@
     <footer>
         <%- await include('../partials/footer') %>
     </footer>
-
-    <script>
-        function redirectGroup(groupId) {
-
-        }
-    </script>
 </body>
 
 </html>

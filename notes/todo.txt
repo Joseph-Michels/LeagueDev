@@ -3,9 +3,13 @@ CRITICAL UPDATES
 
 TODO SOON
 - match v5 api
-- group live games implementation
+- group live games tick timer up
 
 DISTANT FUTURE
 - login; edit/add groups
 - refresh buttons to override expiresAt cache
+- cache cleaning
 - visual update
+
+OTHER
+- duplicate protection for group

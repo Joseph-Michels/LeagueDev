@@ -1,7 +1,7 @@
 const express = require('express');
 const ejs = require('ejs');
 
-class MainRouter {
+class SearchRouter {
     constructor(database, verbose=false) {
         this.VERBOSE = verbose;
 
@@ -22,7 +22,7 @@ class MainRouter {
                 groupIds: groupDict.ids
             }
         
-            res.send(await ejs.renderFile('views/pages/index.ejs', objects, {async: true}));
+            res.send(await ejs.renderFile('views/pages/search.ejs', objects, {async: true}));
         });
         
         this.router.get("/:username", async (req, res) => {
@@ -39,9 +39,9 @@ class MainRouter {
                 groupIds: groupDict.ids
             }
         
-            res.send(await ejs.renderFile('views/pages/index.ejs', objects, {async: true}));
+            res.send(await ejs.renderFile('views/pages/search.ejs', objects, {async: true}));
         });
     }
 }
 
-module.exports = MainRouter;
+module.exports = SearchRouter;

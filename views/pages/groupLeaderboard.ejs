@@ -10,7 +10,6 @@
         <%- await include('../partials/header') %>
     </header>
     <main>
-        <%- await include('../partials/liveGames', {liveGames: liveGames}) %>
         <div class="jumbotron">
 
             <table class='table'>
@@ -26,7 +25,7 @@
                     <% summoners.forEach((summoner, idx) => { %>
                         <tr>
                             <td>
-                                <img src=<%='http://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/'+summoner.profileIconId+'.png'%> width=40></img>
+                                <img src=<%='http://ddragon.leagueoflegends.com/cdn/12.2.1/img/profileicon/'+summoner.profileIconId+'.png'%> width=40></img>
                                 <%= summoner.name %>
                             </td>
                             <td>

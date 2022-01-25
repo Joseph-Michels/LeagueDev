@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- await include('../partials/head.ejs') %>
+</head>
+
+<body class="" style="background-color: #C0C0C0;">
+    <header>
+        <%- await include('../partials/header') %>
+    </header>
+    <main>
+        <div class="jumbotron">
+            <h3>Groups</h3>
+            <% groupNames.forEach((name, index) => { %>
+                <a href=<%= '/group/'+groupIds[index] %> class='btn btn-secondary'">
+                    <%= name %>
+                </a>
+            <% }); %>
+        </div>
+    </main>
+    
+    <footer>
+        <%- await include('../partials/footer') %>
+    </footer>
+</body>
+
+</html>

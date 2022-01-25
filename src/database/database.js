@@ -26,7 +26,7 @@ class Database {
         // http request and cache it
         summoner = await this.requester.getSummonerByName(name, this.VERBOSE || verbose);
         this.firestore.cacheSummoner(summoner, true);
-        return summoner;  
+        return summoner;
     }
 
     async getSummonerByPuuid(id, verbose=false) {
