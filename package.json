@@ -6,7 +6,7 @@
   "dependencies": {
     "ejs": "^3.1.6",
     "express": "^4.17.1",
-    "firebase-admin": "^9.10.0",
+    "firebase-admin": "^11.4.1",
     "serve-favicon": "^2.5.0"
   },
   "scripts": {
